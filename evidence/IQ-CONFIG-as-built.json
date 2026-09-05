@@ -3,10 +3,10 @@
   "title": "Installation qualification: as-built versus as-designed",
   "specification": "CS-001 v1.0",
   "executed_utc": "2026-09-05T10:47:01.878875+00:00",
-  "aws_account": "029123882255",
-  "principal_arn": "arn:aws:iam::029123882255:user/gxp-val-deployer",
+  "aws_account": "<AWS_ACCOUNT_ID>",
+  "principal_arn": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/gxp-val-deployer",
   "region": "eu-west-1",
-  "bucket": "gxp-val-029123882255-eu-west-1",
+  "bucket": "gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
   "checks": [
     {
       "check_id": "IQ-CFG-S01",
@@ -214,8 +214,8 @@
     {
       "check_id": "IQ-CFG-A06",
       "item": "result location",
-      "expected": "s3://gxp-val-029123882255-eu-west-1/athena-results/",
-      "actual": "s3://gxp-val-029123882255-eu-west-1/athena-results/",
+      "expected": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1/athena-results/",
+      "actual": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1/athena-results/",
       "result": "PASS"
     },
     {
@@ -228,8 +228,8 @@
     {
       "check_id": "IQ-CFG-N01",
       "item": "sns topic exists",
-      "expected": "arn:aws:sns:eu-west-1:029123882255:gxp-val-alerts",
-      "actual": "arn:aws:sns:eu-west-1:029123882255:gxp-val-alerts",
+      "expected": "arn:aws:sns:eu-west-1:<AWS_ACCOUNT_ID>:gxp-val-alerts",
+      "actual": "arn:aws:sns:eu-west-1:<AWS_ACCOUNT_ID>:gxp-val-alerts",
       "result": "PASS"
     },
     {
@@ -245,5 +245,11 @@
     "passed": 32,
     "failed": 1
   },
-  "overall": "FAIL"
+  "overall": "FAIL",
+  "redaction": {
+    "applied_utc": "2026-09-05T11:00:58.957964+00:00",
+    "fields": "AWS account identifier replaced with <AWS_ACCOUNT_ID>",
+    "occurrences": 7,
+    "rationale": "Data minimisation for publication. No check result, verdict or timestamp is altered."
+  }
 }

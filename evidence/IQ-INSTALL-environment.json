@@ -4,61 +4,61 @@
   "specification": "CS-001 v1.0",
   "started_utc": "2026-09-05T10:45:23.403096+00:00",
   "finished_utc": "2026-09-05T10:45:27.396729+00:00",
-  "aws_account": "029123882255",
-  "principal_arn": "arn:aws:iam::029123882255:user/gxp-val-deployer",
+  "aws_account": "<AWS_ACCOUNT_ID>",
+  "principal_arn": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/gxp-val-deployer",
   "region": "eu-west-1",
   "resources": {
-    "bucket": "gxp-val-029123882255-eu-west-1",
+    "bucket": "gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
     "glue_database": "gxp_val_db",
     "athena_workgroup": "gxp-val-wg",
-    "sns_topic_arn": "arn:aws:sns:eu-west-1:029123882255:gxp-val-alerts"
+    "sns_topic_arn": "arn:aws:sns:eu-west-1:<AWS_ACCOUNT_ID>:gxp-val-alerts"
   },
   "actions": [
     {
       "timestamp_utc": "2026-09-05T10:45:23.862166+00:00",
-      "resource": "s3://gxp-val-029123882255-eu-west-1",
+      "resource": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
       "action": "create_bucket",
       "outcome": "already_present",
       "detail": ""
     },
     {
       "timestamp_utc": "2026-09-05T10:45:23.999768+00:00",
-      "resource": "s3://gxp-val-029123882255-eu-west-1",
+      "resource": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
       "action": "put_public_access_block",
       "outcome": "created",
       "detail": "all four blocks on"
     },
     {
       "timestamp_utc": "2026-09-05T10:45:24.121359+00:00",
-      "resource": "s3://gxp-val-029123882255-eu-west-1",
+      "resource": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
       "action": "put_bucket_versioning",
       "outcome": "created",
       "detail": "Enabled"
     },
     {
       "timestamp_utc": "2026-09-05T10:45:24.254630+00:00",
-      "resource": "s3://gxp-val-029123882255-eu-west-1",
+      "resource": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
       "action": "put_bucket_encryption",
       "outcome": "created",
       "detail": "AES256"
     },
     {
       "timestamp_utc": "2026-09-05T10:45:24.541476+00:00",
-      "resource": "s3://gxp-val-029123882255-eu-west-1",
+      "resource": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
       "action": "put_lifecycle_configuration",
       "outcome": "created",
       "detail": "3 rules"
     },
     {
       "timestamp_utc": "2026-09-05T10:45:24.676882+00:00",
-      "resource": "s3://gxp-val-029123882255-eu-west-1",
+      "resource": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
       "action": "put_bucket_tagging",
       "outcome": "created",
       "detail": "4 tags"
     },
     {
       "timestamp_utc": "2026-09-05T10:45:25.397297+00:00",
-      "resource": "s3://gxp-val-029123882255-eu-west-1",
+      "resource": "s3://gxp-val-<AWS_ACCOUNT_ID>-eu-west-1",
       "action": "create_prefixes",
       "outcome": "created",
       "detail": "raw/, curated/, quarantine/, audit/, evidence/, athena-results/"
@@ -89,7 +89,7 @@
       "resource": "sns:gxp-val-alerts",
       "action": "create_topic",
       "outcome": "created",
-      "detail": "arn:aws:sns:eu-west-1:029123882255:gxp-val-alerts"
+      "detail": "arn:aws:sns:eu-west-1:<AWS_ACCOUNT_ID>:gxp-val-alerts"
     },
     {
       "timestamp_utc": "2026-09-05T10:45:27.394727+00:00",
@@ -106,5 +106,11 @@
       "detail": "requires --alert-email"
     }
   ],
-  "overall": "PASS"
+  "overall": "PASS",
+  "redaction": {
+    "applied_utc": "2026-09-05T11:00:58.959964+00:00",
+    "fields": "AWS account identifier replaced with <AWS_ACCOUNT_ID>",
+    "occurrences": 12,
+    "rationale": "Data minimisation for publication. No check result, verdict or timestamp is altered."
+  }
 }
