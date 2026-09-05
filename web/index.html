@@ -17,9 +17,10 @@
     --rule:#D6DCDA; --rule-strong:#B3BEBB;
     --ink:#141D1B; --ink-muted:#54615D; --ink-faint:#7B8783;
     --accent:#0E5257;
-    --mark-a:#12959B;          /* caught by its own control */
-    --mark-b:#C87F1A;          /* contained via quarantine  */
+    --mark-a:#12959B; --mark-b:#C87F1A;
     --good:#2F6B4F; --good-soft:#E2EEE7;
+    --warn:#9A6114; --warn-soft:#F5E9D6;
+    --crit:#8C3A2B; --crit-soft:#F3E1DD;
     --f-display:"IBM Plex Serif",Georgia,serif;
     --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
     --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -32,6 +33,8 @@
       --ink:#E3EAE7; --ink-muted:#9DABA7; --ink-faint:#75837F;
       --accent:#54A9A6; --mark-a:#26A0A5; --mark-b:#C27E26;
       --good:#6DBF95; --good-soft:#16291F;
+      --warn:#D9A356; --warn-soft:#2B2113;
+      --crit:#D68272; --crit-soft:#2E1A16;
       color-scheme:dark;
     }
   }
@@ -41,114 +44,132 @@
     --ink:#E3EAE7; --ink-muted:#9DABA7; --ink-faint:#75837F;
     --accent:#54A9A6; --mark-a:#26A0A5; --mark-b:#C27E26;
     --good:#6DBF95; --good-soft:#16291F;
+    --warn:#D9A356; --warn-soft:#2B2113;
+    --crit:#D68272; --crit-soft:#2E1A16;
     color-scheme:dark;
   }
   *,*::before,*::after{box-sizing:border-box}
   html{-webkit-text-size-adjust:none;text-size-adjust:none}
   body{margin:0;background:var(--ground);color:var(--ink);
-       font-family:var(--f-body);font-size:16px;line-height:1.55;
+       font-family:var(--f-body);font-size:15.5px;line-height:1.5;
        -webkit-font-smoothing:antialiased}
   img{max-width:100%}
-  .wrap{max-width:62rem;margin:0 auto;padding:0 clamp(1.15rem,4vw,2.5rem) 4rem}
+  .wrap{max-width:64rem;margin:0 auto;padding:0 clamp(1.1rem,4vw,2.25rem) 3rem}
 
-  /* header */
-  header{padding:2.75rem 0 0}
-  .eyebrow{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.14em;
-           text-transform:uppercase;color:var(--accent);margin:0 0 .85rem}
+  /* ---- masthead ---- */
+  header{padding:2.25rem 0 0}
+  .eyebrow{font-family:var(--f-mono);font-size:.65rem;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--accent);margin:0 0 .7rem}
   h1{font-family:var(--f-display);font-weight:600;
-     font-size:clamp(1.9rem,5vw,2.85rem);line-height:1.08;letter-spacing:-.02em;
-     margin:0 0 .6rem;max-width:18ch;text-wrap:balance}
-  .sub{font-family:var(--f-display);font-size:clamp(1rem,2vw,1.15rem);
-       color:var(--ink-muted);max-width:46ch;margin:0 0 1.75rem}
+     font-size:clamp(1.7rem,4.5vw,2.5rem);line-height:1.08;letter-spacing:-.02em;
+     margin:0 0 .45rem;max-width:18ch;text-wrap:balance}
+  .sub{font-family:var(--f-display);font-size:1.02rem;color:var(--ink-muted);
+       max-width:48ch;margin:0 0 1.4rem}
 
-  /* hero reconciliation */
-  .recon{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.4rem 1.1rem;
+  /* ---- always-visible headline ---- */
+  .recon{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.35rem .95rem;
          border-top:2px solid var(--ink);border-bottom:1px solid var(--rule-strong);
-         padding:1.4rem 0}
-  .term{display:flex;flex-direction:column;gap:.15rem}
-  .term .n{font-family:var(--f-mono);font-size:clamp(1.35rem,4vw,2rem);
+         padding:1.15rem 0}
+  .term{display:flex;flex-direction:column;gap:.12rem}
+  .term .n{font-family:var(--f-mono);font-size:clamp(1.25rem,3.6vw,1.8rem);
            font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
-  .term .l{font-family:var(--f-mono);font-size:.625rem;letter-spacing:.09em;
+  .term .l{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.09em;
            text-transform:uppercase;color:var(--ink-faint)}
-  .op{font-family:var(--f-mono);font-size:1.15rem;color:var(--ink-faint);
-      padding-bottom:.15rem}
-  .term.zero .n{color:var(--good)}
-  .term.zero .l{color:var(--good)}
-  .recon-note{font-size:.8125rem;color:var(--ink-muted);margin:.7rem 0 0}
+  .op{font-family:var(--f-mono);font-size:1.05rem;color:var(--ink-faint);padding-bottom:.1rem}
+  .term.zero .n,.term.zero .l{color:var(--good)}
+  .headline{display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;padding:.7rem 0 0;
+            font-size:.85rem;color:var(--ink-muted)}
+  .headline b{color:var(--ink);font-weight:600}
 
-  /* sections */
-  section{margin-top:3rem}
-  .sechead{display:flex;align-items:baseline;gap:.75rem;
-           border-bottom:1px solid var(--rule-strong);padding-bottom:.45rem;
-           margin-bottom:1.15rem}
-  .sechead h2{font-family:var(--f-display);font-size:1.25rem;font-weight:600;
-              margin:0;letter-spacing:-.01em}
-  .sechead .ref{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.07em;
-                color:var(--ink-faint);margin-left:auto;white-space:nowrap}
-  p{max-width:64ch;margin:0 0 .85rem}
+  /* ---- tabs ---- */
+  .tabs{display:flex;flex-wrap:wrap;gap:.3rem;margin:1.5rem 0 0;
+        border-bottom:1px solid var(--rule-strong);padding-bottom:.55rem}
+  .tab{font-family:var(--f-body);font-size:.85rem;font-weight:500;
+       padding:.45rem .8rem;border:1px solid var(--rule-strong);border-radius:2px;
+       background:var(--surface);color:var(--ink-muted);cursor:pointer;
+       white-space:nowrap}
+  .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);
+       color:var(--ground);font-weight:600}
+  .tab:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .tab .num{font-family:var(--f-mono);font-size:.7rem;opacity:.7;margin-right:.35rem}
+  .panel{padding-top:1.35rem}
+  .panel[hidden]{display:none!important}
+
+  h2{font-family:var(--f-display);font-size:1.15rem;font-weight:600;
+     margin:0 0 .2rem;letter-spacing:-.01em}
+  .lede{color:var(--ink-muted);font-size:.9rem;margin:0 0 1.1rem;max-width:62ch}
+  p{max-width:64ch;margin:0 0 .8rem;font-size:.925rem}
   p:last-child{margin-bottom:0}
   code{font-family:var(--f-mono);font-size:.875em;background:var(--surface-alt);
-       padding:.1em .34em;border-radius:2px}
+       padding:.1em .32em;border-radius:2px}
   a{color:var(--accent)}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:34rem}
+  th{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.09em;
+     text-transform:uppercase;color:var(--ink-faint);text-align:left;
+     font-weight:500;padding:0 .7rem .4rem 0;border-bottom:1px solid var(--rule-strong)}
+  td{padding:.5rem .7rem .5rem 0;border-bottom:1px solid var(--rule);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .mono{font-family:var(--f-mono);font-size:.8rem;white-space:nowrap}
+  .mono.acc{color:var(--accent)}
+  .muted{color:var(--ink-muted)}
+  .pill{font-family:var(--f-mono);font-size:.6rem;letter-spacing:.05em;
+        padding:.13rem .42rem;border-radius:2px;white-space:nowrap}
+  .pill.hi{background:var(--crit-soft);color:var(--crit)}
+  .pill.md{background:var(--warn-soft);color:var(--warn)}
+  .pill.lo{background:var(--surface-alt);color:var(--ink-muted)}
+  .pill.ok{background:var(--good-soft);color:var(--good)}
 
   /* defect grid */
-  .legend{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;
+  .legend{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:.85rem;
           font-size:.75rem;color:var(--ink-muted)}
   .key{display:inline-flex;align-items:center;gap:.4rem}
-  .sw{width:.85rem;height:.6rem;border-radius:2px;flex:none}
+  .sw{width:.85rem;height:.55rem;border-radius:2px;flex:none}
   .sw.a{background:var(--mark-a)} .sw.b{background:var(--mark-b)}
   .grid{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
   @media(min-width:38rem){.grid{grid-template-columns:1fr 1fr}}
-  @media(min-width:60rem){.grid{grid-template-columns:1fr 1fr 1fr}}
-  .cell{background:var(--surface);padding:.85rem .95rem;display:flex;
-        flex-direction:column;gap:.45rem}
+  @media(min-width:62rem){.grid{grid-template-columns:1fr 1fr 1fr}}
+  .cell{background:var(--surface);padding:.75rem .85rem;display:flex;
+        flex-direction:column;gap:.38rem}
   .cell .top{display:flex;align-items:baseline;gap:.5rem}
-  .cell .did{font-family:var(--f-mono);font-size:.75rem;color:var(--accent)}
-  .cell .cnt{font-family:var(--f-mono);font-size:.75rem;color:var(--ink-faint);
+  .cell .did{font-family:var(--f-mono);font-size:.72rem;color:var(--accent)}
+  .cell .cnt{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-faint);
              margin-left:auto;font-variant-numeric:tabular-nums}
-  .cell .nm{font-size:.8125rem;line-height:1.3}
-  .bar{display:flex;height:.5rem;gap:2px;border-radius:2px;overflow:hidden}
+  .cell .nm{font-size:.8rem;line-height:1.3}
+  .bar{display:flex;height:.45rem;gap:2px;border-radius:2px;overflow:hidden}
   .seg{border-radius:2px;min-width:3px}
   .seg.a{background:var(--mark-a)} .seg.b{background:var(--mark-b)}
-  .cell .st{font-family:var(--f-mono);font-size:.625rem;letter-spacing:.05em;
-            color:var(--good)}
 
-  /* provenance */
-  .prov{background:var(--surface);border:1px solid var(--rule-strong);
-        border-left:3px solid var(--accent);padding:1.15rem 1.3rem}
-  .prov dl{margin:0;display:grid;gap:.7rem}
-  @media(min-width:44rem){.prov dl{grid-template-columns:auto 1fr;gap:.7rem 1.3rem}}
-  .prov dt{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.07em;
-           text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
-  .prov dd{margin:0;font-size:.9375rem}
+  /* fact block */
+  .facts{background:var(--surface);border:1px solid var(--rule-strong);
+         border-left:3px solid var(--accent);padding:1rem 1.15rem}
+  .facts dl{margin:0;display:grid;gap:.6rem}
+  @media(min-width:44rem){.facts dl{grid-template-columns:auto 1fr;gap:.6rem 1.2rem}}
+  .facts dt{font-family:var(--f-mono);font-size:.65rem;letter-spacing:.07em;
+            text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
+  .facts dd{margin:0;font-size:.9rem}
 
   /* byte exhibit */
   .rows{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);
-        margin-bottom:.9rem}
-  .row{background:var(--surface);display:grid;gap:.35rem;padding:.75rem .95rem}
-  @media(min-width:46rem){.row{grid-template-columns:6.5rem 1fr auto;
-                               align-items:center;gap:1rem}}
-  .row .who{font-family:var(--f-mono);font-size:.75rem;color:var(--ink-faint)}
-  .row .by{font-family:var(--f-mono);font-size:.8125rem;overflow-x:auto;
-           white-space:nowrap}
+        margin:.9rem 0}
+  .row{background:var(--surface);display:grid;gap:.3rem;padding:.65rem .85rem}
+  @media(min-width:46rem){.row{grid-template-columns:6rem 1fr auto;align-items:center;gap:1rem}}
+  .row .who{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-faint)}
+  .row .by{font-family:var(--f-mono);font-size:.8rem;overflow-x:auto;white-space:nowrap}
   .row .by b{color:var(--mark-b);font-weight:500}
-  .vd{font-family:var(--f-mono);font-size:.6875rem;padding:.18rem .5rem;
-      border-radius:2px;white-space:nowrap;background:var(--surface-alt);
-      color:var(--ink-muted)}
-  .vd.bad{background:var(--good-soft);color:var(--good)}
 
-  /* links */
-  .links{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.15rem}
-  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.1rem;
-       text-decoration:none;font-weight:500;font-size:.9rem;border-radius:2px;
+  .callout{border-left:3px solid var(--rule-strong);padding-left:.95rem;
+           margin:.9rem 0;color:var(--ink-muted);font-size:.9rem;max-width:62ch}
+  .links{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1.15rem}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.62rem 1rem;
+       text-decoration:none;font-weight:500;font-size:.875rem;border-radius:2px;
        border:1px solid var(--rule-strong);color:var(--ink);background:var(--surface)}
   .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--ground)}
   .btn:hover{opacity:.85}
   .btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-
-  footer{margin-top:3.5rem;padding-top:1rem;border-top:1px solid var(--rule);
-         font-size:.8125rem;color:var(--ink-faint)}
-  footer p{max-width:64ch}
+  footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--rule);
+         font-size:.78rem;color:var(--ink-faint)}
+  footer p{max-width:66ch;font-size:.78rem}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -169,12 +190,27 @@
     <span class="op">=</span>
     <div class="term zero"><span class="n">0</span><span class="l">unaccounted</span></div>
   </div>
-  <p class="recon-note">Nothing was dropped and nothing was invented. Every quarantined row carries the rule it violated and its source record verbatim.</p>
+  <div class="headline">
+    <span><b>9/9</b> injected defects contained</span>
+    <span><b>13/13</b> requirements traced</span>
+    <span><b>1</b> deviation left open</span>
+    <span><b>$0.00</b> to run</span>
+  </div>
 </header>
 
-<section>
-  <div class="sechead"><h2>Nine defects, injected on purpose</h2><span class="ref">9/9 contained</span></div>
-  <p>A validation pack where everything passes has proved nothing. Nine known defects were planted in the source, each drawn from a failure mode that recurs in real system decommissioning. The migration code never sees the list.</p>
+<div class="tabs" role="tablist" aria-label="Sections">
+  <button class="tab" role="tab" id="t1" aria-controls="p1" aria-selected="true"><span class="num">01</span>Result</button>
+  <button class="tab" role="tab" id="t2" aria-controls="p2" aria-selected="false"><span class="num">02</span>The data</button>
+  <button class="tab" role="tab" id="t3" aria-controls="p3" aria-selected="false"><span class="num">03</span>Assessment</button>
+  <button class="tab" role="tab" id="t4" aria-controls="p4" aria-selected="false"><span class="num">04</span>Risk</button>
+  <button class="tab" role="tab" id="t5" aria-controls="p5" aria-selected="false"><span class="num">05</span>Integrity</button>
+  <button class="tab" role="tab" id="t6" aria-controls="p6" aria-selected="false"><span class="num">06</span>Evidence</button>
+</div>
+
+<!-- 01 ------------------------------------------------------------------ -->
+<section class="panel" id="p1" role="tabpanel" aria-labelledby="t1">
+  <h2>Nine defects, injected on purpose</h2>
+  <p class="lede">A validation pack where everything passes has proved nothing. Nine known defects were planted in the source. The migration code never sees the list — detection is attributed afterwards, from which control fired, so it cannot be tuned to the answer.</p>
 
   <div class="legend">
     <span class="key"><span class="sw a"></span> caught by its own control — 4,261</span>
@@ -184,87 +220,156 @@
   <div class="grid">
     <div class="cell"><div class="top"><span class="did">DEF-01</span><span class="cnt">1,689</span></div>
       <span class="nm">Assay codes with no target equivalent</span>
-      <div class="bar"><span class="seg a" style="flex:1677"></span><span class="seg b" style="flex:12"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:1677"></span><span class="seg b" style="flex:12"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-02</span><span class="cnt">1,204</span></div>
       <span class="nm">Haemoglobin g/dL where target expects g/L</span>
-      <div class="bar"><span class="seg a" style="flex:1196"></span><span class="seg b" style="flex:8"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:1196"></span><span class="seg b" style="flex:8"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-03</span><span class="cnt">1,271</span></div>
       <span class="nm">Censored, padded and comma-decimal numerics</span>
-      <div class="bar"><span class="seg a" style="flex:1261"></span><span class="seg b" style="flex:10"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:1261"></span><span class="seg b" style="flex:10"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-04</span><span class="cnt">6</span></div>
       <span class="nm">Donor names double-encoded at rest</span>
-      <div class="bar"><span class="seg a" style="flex:6"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:6"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-05</span><span class="cnt">5</span></div>
       <span class="nm">Timestamps inside the DST fallback hour</span>
-      <div class="bar"><span class="seg a" style="flex:5"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:5"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-06</span><span class="cnt">4</span></div>
       <span class="nm">Duplicate donation identifiers</span>
-      <div class="bar"><span class="seg a" style="flex:4"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:4"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-07</span><span class="cnt">6</span></div>
       <span class="nm">Results referencing absent donations</span>
-      <div class="bar"><span class="seg a" style="flex:6"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:6"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-08</span><span class="cnt">105</span></div>
       <span class="nm">Undocumented sentinel <code>9999</code></span>
-      <div class="bar"><span class="seg a" style="flex:105"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:105"></span></div></div>
     <div class="cell"><div class="top"><span class="did">DEF-09</span><span class="cnt">1</span></div>
       <span class="nm">Manifest total disagrees with the file</span>
-      <div class="bar"><span class="seg a" style="flex:1"></span></div>
-      <span class="st">CONTAINED</span></div>
+      <div class="bar"><span class="seg a" style="flex:1"></span></div></div>
   </div>
+
+  <div class="callout">The verification also found <strong>two defects in its own test oracle</strong> — a timezone rule applied to the wrong region, and a defect logged on rows a later step overwrote. Both were fixed in the generator. A known-answer test that catches the test rather than the system is working.</div>
 </section>
 
-<section>
-  <div class="sechead"><h2>Where the data comes from</h2><span class="ref">Synthetic · reproducible</span></div>
-  <div class="prov">
+<!-- 02 ------------------------------------------------------------------ -->
+<section class="panel" id="p2" role="tabpanel" aria-labelledby="t2" hidden>
+  <h2>Where the data comes from</h2>
+  <p class="lede">Fair first question, so it is answered before anything else.</p>
+  <div class="facts">
     <dl>
       <dt>Origin</dt>
-      <dd>Generated by a script in this repository. No real patient records are involved, and none were available — which is the normal constraint when demonstrating this work outside a client engagement.</dd>
+      <dd>Generated by a script in this repository. No real patient records, which is the normal constraint for showing this work outside a client engagement.</dd>
       <dt>Modelled on</dt>
-      <dd>A donor screening laboratory. The assay panel is the marker set mandated for allogeneic blood donation screening under EU Directive 2002/98/EC — NAT and serology for HIV, HBV and HCV, plus syphilis and anti-HBc — carrying real LOINC codes.</dd>
+      <dd>A donor screening laboratory. The assay panel is the marker set mandated for allogeneic donation screening under EU Directive 2002/98/EC — NAT and serology for HIV, HBV and HCV, plus syphilis and anti-HBc — carrying real LOINC codes.</dd>
       <dt>Shape</dt>
-      <dd>What a fifteen-year-old system actually hands over: pipe-delimited flat files, Latin-1 encoded, local wall-clock timestamps with no offset column, numeric results held as free text, and a control-total manifest.</dd>
+      <dd>What a fifteen-year-old system actually hands over: pipe-delimited flat files, Latin-1, local wall-clock timestamps with no offset column, numeric results as free text, and a control-total manifest.</dd>
       <dt>Reproducible</dt>
-      <dd>Deterministic from a seed. The same seed reproduces the same 15,839 rows and the same SHA-256 checksums, so the dataset the evidence was produced from can be regenerated exactly.</dd>
-      <dt>Known answer</dt>
-      <dd>The injected defects are logged to an oracle file that the migration code never reads. Detection is attributed afterwards, from which control fired — so the migration cannot be tuned to the answer.</dd>
+      <dd>Deterministic from a seed. Same seed, same 15,839 rows, same SHA-256 checksums.</dd>
+      <dt>Volume</dt>
+      <dd>500 donors · 1,204 donations · 13,735 screening results · 400 quality-control records.</dd>
     </dl>
   </div>
-</section>
 
-<section>
-  <div class="sechead"><h2>Why one defect is worth showing</h2><span class="ref">DEF-04</span></div>
+  <h2 style="margin-top:1.6rem">Why one defect is worth showing</h2>
+  <p class="lede">DEF-04, at the byte level.</p>
   <div class="rows">
     <div class="row"><span class="who">D000001</span>
       <span class="by">46 65 72 72 <b>e1</b> 6e 64 65 7a</span>
-      <span class="vd">clean Latin-1</span></div>
+      <span class="pill lo">clean Latin-1</span></div>
     <div class="row"><span class="who">D000028</span>
       <span class="by">56 <b>c3 ad</b> 6c 63 68 65 7a</span>
-      <span class="vd bad">double-encoded</span></div>
+      <span class="pill hi">double-encoded</span></div>
   </div>
-  <p>Byte <code>e1</code> is not valid UTF-8, so the <strong>clean</strong> row displays as <code>Ferr�ndez</code> and looks broken. The pair <code>c3 ad</code> <em>is</em> valid UTF-8, so the <strong>corrupt</strong> row displays as <code>Vílchez</code> and looks perfect.</p>
-  <p>The corruption is invisible to the eye and provable at the byte level. Six donors in five hundred. This is why migration verification is done on bytes and counts rather than by looking at a sample.</p>
+  <p>Byte <code>e1</code> is not valid UTF-8, so the <strong>clean</strong> row displays as <code>Ferr�ndez</code> and looks broken. The pair <code>c3 ad</code> <em>is</em> valid UTF-8, so the <strong>corrupt</strong> row displays as <code>Vílchez</code> and looks perfect. Six donors in five hundred — invisible to the eye, provable at the byte level.</p>
 </section>
 
-<section>
-  <div class="sechead"><h2>What was produced</h2><span class="ref">Executed against live AWS</span></div>
-  <div class="prov">
+<!-- 03 ------------------------------------------------------------------ -->
+<section class="panel" id="p3" role="tabpanel" aria-labelledby="t3" hidden>
+  <h2>Can the source support this migration?</h2>
+  <p class="lede">Assessed before any mapping was written. A mapping produced before this assessment would be a mapping of assumptions.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Gap</th><th>What is missing</th><th>Class</th><th>Owner</th></tr></thead>
+      <tbody>
+        <tr><td class="mono acc">GAP-03</td><td>Manifest control totals disagree with the files they describe</td><td><span class="pill hi">blocking</span></td><td class="muted">Source System Owner</td></tr>
+        <tr><td class="mono acc">GAP-06</td><td>No UTC offset anywhere in the source schema</td><td><span class="pill md">constraint</span></td><td class="muted">Migration Lead</td></tr>
+        <tr><td class="mono acc">GAP-05</td><td>Units differ from target convention</td><td><span class="pill md">constraint</span></td><td class="muted">Data Steward</td></tr>
+        <tr><td class="mono acc">GAP-01</td><td>Duplicate donation identifiers from a site-database merge</td><td><span class="pill md">decision</span></td><td class="muted">Data Owner</td></tr>
+        <tr><td class="mono acc">GAP-02</td><td>Extracts not taken atomically, producing orphans</td><td><span class="pill md">decision</span></td><td class="muted">Data Owner</td></tr>
+        <tr><td class="mono acc">GAP-04</td><td>Data dictionary omits the <code>9999</code> sentinel</td><td><span class="pill md">decision</span></td><td class="muted">Data Steward</td></tr>
+        <tr><td class="mono acc">GAP-07</td><td>Declared character set is not uniformly true</td><td><span class="pill md">decision</span></td><td class="muted">Data Owner</td></tr>
+        <tr><td class="mono acc">GAP-09</td><td>Two assays have no agreed target code</td><td><span class="pill md">decision</span></td><td class="muted">Laboratory SME</td></tr>
+        <tr><td class="mono acc">GAP-08</td><td>Source holds no audit trail; prior history is unrecoverable</td><td><span class="pill lo">accepted</span></td><td class="muted">Quality Unit</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout"><strong>Verdict: feasible, with one blocking gap.</strong> A manifest that disagrees with its own files means the source cannot state how many records it holds — reconciling the target against that figure would produce agreement on a number nobody verified. That is the appearance of a control rather than a control.</div>
+  <p>Every gap here was found by <strong>inspecting the data, not by reading the documentation about it</strong>. For a system this old, the extract is the authoritative description of the source and the dictionary is a hypothesis.</p>
+  <div class="links"><a class="btn" href="https://github.com/Javoo-bot/test-AWS/blob/main/docs/01-assessment/GAP-001-migration-feasibility-gap-assessment.md">Full assessment →</a></div>
+</section>
+
+<!-- 04 ------------------------------------------------------------------ -->
+<section class="panel" id="p4" role="tabpanel" aria-labelledby="t4" hidden>
+  <h2>What gets tested hard, and what does not</h2>
+  <p class="lede">GAMP 5 two-stage scoring: severity × probability gives a risk class, then class × detectability gives priority. Testing everything to the same depth is not rigour, it is an absence of judgement.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Data element</th><th>S</th><th>P</th><th>D</th><th>Priority</th><th>Driving concern</th></tr></thead>
+      <tbody>
+        <tr><td>Screening result code</td><td>Hi</td><td>Md</td><td>Lo</td><td><span class="pill hi">HIGH</span></td><td class="muted">Decides unit release or destruction</td></tr>
+        <tr><td>Numeric result + unit</td><td>Hi</td><td>Md</td><td>Lo</td><td><span class="pill hi">HIGH</span></td><td class="muted">A tenfold unit error is well-formed and passes every schema check</td></tr>
+        <tr><td>Donation identifier</td><td>Hi</td><td>Md</td><td>Md</td><td><span class="pill hi">HIGH</span></td><td class="muted">Printed on the physical unit</td></tr>
+        <tr><td>Donor link</td><td>Hi</td><td>Lo</td><td>Md</td><td><span class="pill hi">HIGH</span></td><td class="muted">Breaks lookback and recall</td></tr>
+        <tr><td>Timestamps</td><td>Md</td><td>Hi</td><td>Lo</td><td><span class="pill hi">HIGH</span></td><td class="muted">Errors are systematic, not random, and look correct</td></tr>
+        <tr><td>Blood group / Rh</td><td>Hi</td><td>Lo</td><td>Hi</td><td><span class="pill md">Medium</span></td><td class="muted">Severe, but a closed vocabulary makes violations obvious</td></tr>
+        <tr><td>Operator / instrument</td><td>Md</td><td>Lo</td><td>Hi</td><td><span class="pill lo">Low</span></td><td class="muted">Attributable metadata; absence is visible</td></tr>
+        <tr><td>Volume, descriptive fields</td><td>Lo</td><td>Lo</td><td>Hi</td><td><span class="pill lo">Low</span></td><td class="muted">No clinical decision depends on them</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout"><strong>Detectability does the real work here.</strong> Several defects are low-detectability by nature — they produce output that is well-formed, plausible and wrong. Those escalate to HIGH regardless of how unlikely they are.</div>
+  <p><strong>Deliberately tested less:</strong> quality-control status is carried through verbatim and <em>not</em> recomputed. The recorded status is what the laboratory concluded at the time under the procedures then in force; recalculating it would replace a historical record with a present-day opinion. Disagreements are reported as findings, never silently corrected.</p>
+  <div class="links"><a class="btn" href="https://github.com/Javoo-bot/test-AWS/blob/main/docs/06-risk/RA-001-risk-assessment.md">Full risk assessment →</a></div>
+</section>
+
+<!-- 05 ------------------------------------------------------------------ -->
+<section class="panel" id="p5" role="tabpanel" aria-labelledby="t5" hidden>
+  <h2>ALCOA+ applied to a migration</h2>
+  <p class="lede">One principle dominates. Every other can be satisfied by a system that quietly improves data as it moves. <strong>Original</strong> is the one that forbids it.</p>
+  <div class="callout" style="border-left-color:var(--accent)">The design rule throughout: <strong>a transformed value never replaces its source — it accompanies it.</strong></div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>What could have been lost</th><th>What is retained instead</th></tr></thead>
+      <tbody>
+        <tr><td>Local time replaced by UTC</td><td><strong>Both</strong>, plus the resolved offset the source never recorded</td></tr>
+        <tr><td>Free-text results replaced by parsed numbers</td><td><strong>Both</strong> — the source string is kept verbatim</td></tr>
+        <tr><td><code>&lt;0.10</code> parsed as <code>0.10</code></td><td>Numeric stays null; the comparator is kept separately. "Below detection" and "measured 0.10" are different assertions</td></tr>
+        <tr><td>Legacy assay code discarded once mapped</td><td><strong>Always retained</strong>, mapped or not</td></tr>
+        <tr><td>Unit conversion buried in code</td><td>Factor recorded per record, so the arithmetic is auditable</td></tr>
+        <tr><td>Corrupt names silently repaired</td><td>Every repair carries the original and its source bytes. Speculative repairs are not applied at all</td></tr>
+        <tr><td>Rejected rows discarded</td><td>Every quarantined row keeps its complete source record</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:1rem">The audit trail deliberately records <em>only</em> decisions that altered, flagged or rejected a value — 24,773 entries. A trail containing every untouched field would run to hundreds of thousands, and noise is where real entries hide. A test asserts no no-op entry appears, so the rule holds by verification rather than intention.</p>
+  <div class="links"><a class="btn" href="https://github.com/Javoo-bot/test-AWS/blob/main/docs/05-data-integrity/DI-001-alcoa-and-audit-trail.md">Full note →</a></div>
+</section>
+
+<!-- 06 ------------------------------------------------------------------ -->
+<section class="panel" id="p6" role="tabpanel" aria-labelledby="t6" hidden>
+  <h2>What was produced</h2>
+  <p class="lede">Executed against real AWS, not a simulation.</p>
+  <div class="facts">
     <dl>
       <dt>Specification</dt>
-      <dd>Source-to-target mapping of 43 fields, 14 rated critical, consumed directly by the transform and by the traceability matrix — so the specification and the code cannot silently disagree.</dd>
+      <dd>43 mapped fields, 14 rated critical. Consumed directly by the transform and the traceability matrix, so specification and code cannot silently disagree.</dd>
       <dt>Traceability</dt>
-      <dd>13 requirements, 12 controls, all VERIFIED. The matrix is generated from runs that happened, not typed. Its first generation reported three requirements whose controls nothing exercised; those gaps were closed rather than edited out.</dd>
+      <dd>13 requirements, 12 controls, all VERIFIED. Generated from runs that happened. Its first generation reported three requirements whose controls nothing exercised; those gaps were closed rather than edited out.</dd>
       <dt>Evidence</dt>
-      <dd>24,773 audit entries, each carrying the rule applied, the requirement it serves and the original value. 17 requirement-tagged tests. Installation qualification run against real AWS: 23/23 on credential scope, 32/33 on configuration.</dd>
+      <dd>24,773 audit entries · 17 requirement-tagged tests · installation qualification 23/23 on credential scope and 32/33 on configuration.</dd>
       <dt>Open deviation</dt>
-      <dd>One check fails and is left failing: the alerting topic has no confirmed subscriber. A pack that reports only what passed is describing a rehearsal.</dd>
+      <dd><strong>One check fails and is left failing:</strong> the alerting topic has no confirmed subscriber. Industry guidance is blunt about this — a report with zero deviations is a warning sign, not a clean result.</dd>
+      <dt>Cost</dt>
+      <dd>$0.00. Built on always-free services, with the deployment permissions actively denying every billable one.</dd>
     </dl>
   </div>
   <div class="links">
@@ -275,9 +380,41 @@
 </section>
 
 <footer>
-  <p>Synthetic data throughout; no real patient records. Account identifiers in the published evidence are redacted, with no verdict or timestamp altered. Runs on AWS free-tier services at a cost of $0.00.</p>
+  <p>Synthetic data throughout; no real patient records. Account identifiers in the published evidence are redacted, with no verdict or timestamp altered.</p>
 </footer>
 
 </div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  if (!tabs.length) return;
+
+  // Panels start visible in the markup so the page still reads with no JS.
+  function select(tab) {
+    tabs.forEach(function (t) {
+      var panel = document.getElementById(t.getAttribute('aria-controls'));
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      if (panel) panel.hidden = !on;
+    });
+  }
+
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () { select(tab); });
+    tab.addEventListener('keydown', function (e) {
+      var next = null;
+      if (e.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { e.preventDefault(); select(next); next.focus(); }
+    });
+  });
+
+  select(tabs[0]);
+})();
+</script>
 </body>
 </html>

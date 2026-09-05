@@ -83,17 +83,28 @@ The traceability matrix is **generated, not written**. Its first run reported th
 requirements whose controls nothing exercised; those gaps were closed rather than
 edited out.
 
-## Layout
+The gap assessment found **one blocking gap**: the source manifest disagrees with its
+own files, so the source cannot state how many records it holds. Reconciling against
+that figure would produce agreement on a number nobody verified.
+
+## Documents
+
+| Document | What it answers |
+|---|---|
+| [GAP-001](docs/01-assessment/GAP-001-migration-feasibility-gap-assessment.md) | Can the source support this migration, and what is missing? |
+| [URS-001](docs/02-specifications/URS-001-requirements.yaml) | What must be true for it to be correct? |
+| [STTM-001](docs/03-mapping/STTM-001-source-to-target-mapping.yaml) | Field by field, what becomes what and under which rule? |
+| [RTM-001](docs/04-traceability/RTM-001-traceability-matrix.md) | Is every requirement actually verified? *(generated)* |
+| [RA-001](docs/06-risk/RA-001-risk-assessment.md) | What gets tested hard, what does not, and why? |
+| [DI-001](docs/05-data-integrity/DI-001-alcoa-and-audit-trail.md) | How is ALCOA+ applied, and what is the audit trail? |
+| [CS-001](infra/provision/infrastructure-spec.yaml) | What was installed, and what was excluded on cost grounds? |
 
 ```
-docs/02-specifications/   URS-001 requirements (machine-readable)
-docs/03-mapping/          STTM-001 source-to-target mapping
-docs/04-traceability/     RTM-001, generated
-src/legacy_sim/           extract generator + defect catalogue
-src/migration/            transforms, quarantine, audit trail
-src/reconciliation/       known-answer verification
-infra/provision/          CS-001 config spec, provisioner, qualification
-evidence/                 execution records
+src/legacy_sim/       extract generator + defect catalogue
+src/migration/        transforms, quarantine, audit trail
+src/reconciliation/   known-answer verification
+infra/provision/      provisioner + installation qualification
+evidence/             execution records
 ```
 
 ## Reproduce
