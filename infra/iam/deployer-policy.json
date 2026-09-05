@@ -1,0 +1,221 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3BucketLifecycle",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:ListBucket",
+        "s3:ListBucketVersions",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:PutEncryptionConfiguration",
+        "s3:GetEncryptionConfiguration",
+        "s3:PutLifecycleConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:PutBucketNotification",
+        "s3:GetBucketNotification",
+        "s3:PutBucketTagging",
+        "s3:GetBucketTagging",
+        "s3:GetBucketAcl",
+        "s3:GetBucketOwnershipControls"
+      ],
+      "Resource": "arn:aws:s3:::gxp-val-*"
+    },
+    {
+      "Sid": "S3Objects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:GetObjectTagging",
+        "s3:PutObjectTagging"
+      ],
+      "Resource": "arn:aws:s3:::gxp-val-*/*"
+    },
+    {
+      "Sid": "GlueDataCatalogOnly",
+      "Effect": "Allow",
+      "Action": [
+        "glue:CreateDatabase",
+        "glue:DeleteDatabase",
+        "glue:GetDatabase",
+        "glue:GetDatabases",
+        "glue:CreateTable",
+        "glue:UpdateTable",
+        "glue:DeleteTable",
+        "glue:GetTable",
+        "glue:GetTables",
+        "glue:BatchCreatePartition",
+        "glue:CreatePartition",
+        "glue:GetPartition",
+        "glue:GetPartitions",
+        "glue:BatchGetPartition"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyBillableGlueCompute",
+      "Effect": "Deny",
+      "Action": [
+        "glue:CreateCrawler",
+        "glue:StartCrawler",
+        "glue:UpdateCrawler",
+        "glue:CreateJob",
+        "glue:StartJobRun",
+        "glue:UpdateJob",
+        "glue:CreateSession",
+        "glue:RunStatement",
+        "glue:CreateDevEndpoint",
+        "glue:CreateWorkflow",
+        "glue:CreateTrigger"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AthenaScopedToWorkgroup",
+      "Effect": "Allow",
+      "Action": [
+        "athena:CreateWorkGroup",
+        "athena:UpdateWorkGroup",
+        "athena:DeleteWorkGroup",
+        "athena:GetWorkGroup",
+        "athena:ListWorkGroups",
+        "athena:StartQueryExecution",
+        "athena:StopQueryExecution",
+        "athena:GetQueryExecution",
+        "athena:GetQueryResults",
+        "athena:ListQueryExecutions"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "LambdaScoped",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:DeleteFunction",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:InvokeFunction",
+        "lambda:AddPermission",
+        "lambda:RemovePermission",
+        "lambda:ListVersionsByFunction",
+        "lambda:PublishVersion",
+        "lambda:TagResource",
+        "lambda:ListTags",
+        "lambda:GetPolicy"
+      ],
+      "Resource": "arn:aws:lambda:eu-west-1:*:function:gxp-val-*"
+    },
+    {
+      "Sid": "IamForLambdaExecutionRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:GetRole",
+        "iam:PassRole",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:TagRole"
+      ],
+      "Resource": "arn:aws:iam::*:role/gxp-val-*"
+    },
+    {
+      "Sid": "Logs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:DescribeLogGroups",
+        "logs:PutRetentionPolicy",
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents",
+        "logs:StartQuery",
+        "logs:GetQueryResults"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SnsForAlerting",
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "sns:Publish",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:ListSubscriptionsByTopic"
+      ],
+      "Resource": "arn:aws:sns:eu-west-1:*:gxp-val-*"
+    },
+    {
+      "Sid": "ReadOnlyAudit",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:LookupEvents",
+        "cloudtrail:DescribeTrails",
+        "sts:GetCallerIdentity",
+        "iam:GetUser",
+        "iam:ListAccountAliases",
+        "ce:GetCostAndUsage",
+        "budgets:ViewBudget",
+        "iam:SimulatePrincipalPolicy",
+        "iam:ListAttachedUserPolicies",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "HardDenyKnownCostlyServices",
+      "Effect": "Deny",
+      "Action": [
+        "airflow:*",
+        "aoss:*",
+        "ec2:CreateNatGateway",
+        "ec2:RunInstances",
+        "elasticmapreduce:*",
+        "es:*",
+        "kinesis:*",
+        "rds:CreateDBCluster",
+        "rds:CreateDBInstance",
+        "redshift-serverless:*",
+        "redshift:*",
+        "sagemaker:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CostGuardBudget",
+      "Effect": "Allow",
+      "Action": [
+        "budgets:ViewBudget",
+        "budgets:ModifyBudget"
+      ],
+      "Resource": "arn:aws:budgets::*:budget/*"
+    }
+  ]
+}

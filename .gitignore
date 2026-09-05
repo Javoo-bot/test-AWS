@@ -1,0 +1,35 @@
+# ---- Secrets -----------------------------------------------------------
+# AWS credentials live in ~/.aws/credentials, never in the repo.
+.env
+.env.local
+*.pem
+*.key
+credentials
+.aws/
+
+# ---- Python ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# ---- Build -------------------------------------------------------------
+build/
+dist/
+*.zip
+
+# ---- Editors / OS ------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# ---- NOT ignored, deliberately -----------------------------------------
+# data/legacy/    the exact dataset the evidence was produced from
+# data/_oracle/   ground truth for the known-answer tests
+# evidence/       execution records; these ARE the deliverable

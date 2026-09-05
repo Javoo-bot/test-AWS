@@ -1,0 +1,249 @@
+{
+  "protocol": "IQ-CONFIG",
+  "title": "Installation qualification: as-built versus as-designed",
+  "specification": "CS-001 v1.0",
+  "executed_utc": "2026-09-05T10:47:01.878875+00:00",
+  "aws_account": "029123882255",
+  "principal_arn": "arn:aws:iam::029123882255:user/gxp-val-deployer",
+  "region": "eu-west-1",
+  "bucket": "gxp-val-029123882255-eu-west-1",
+  "checks": [
+    {
+      "check_id": "IQ-CFG-S01",
+      "item": "bucket region",
+      "expected": "eu-west-1",
+      "actual": "eu-west-1",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S02.BlockPublicAcls",
+      "item": "public access block: BlockPublicAcls",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S02.IgnorePublicAcls",
+      "item": "public access block: IgnorePublicAcls",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S02.BlockPublicPolicy",
+      "item": "public access block: BlockPublicPolicy",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S02.RestrictPublicBuckets",
+      "item": "public access block: RestrictPublicBuckets",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S03",
+      "item": "versioning",
+      "expected": "Enabled",
+      "actual": "Enabled",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S04",
+      "item": "default encryption",
+      "expected": "AES256",
+      "actual": "AES256",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S05",
+      "item": "lifecycle rule count",
+      "expected": 3,
+      "actual": 3,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S06.abort-incomplete-uploads",
+      "item": "lifecycle rule 'abort-incomplete-uploads'",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S06.expire-athena-results",
+      "item": "lifecycle rule 'expire-athena-results'",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S06.expire-noncurrent-versions",
+      "item": "lifecycle rule 'expire-noncurrent-versions'",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S07",
+      "item": "noncurrent version expiry (days)",
+      "expected": 30,
+      "actual": 30,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S08.Project",
+      "item": "tag Project",
+      "expected": "gxp-migration-validation",
+      "actual": "gxp-migration-validation",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S08.Environment",
+      "item": "tag Environment",
+      "expected": "validation",
+      "actual": "validation",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S08.ManagedBy",
+      "item": "tag ManagedBy",
+      "expected": "provision.py",
+      "actual": "provision.py",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S08.CostCentre",
+      "item": "tag CostCentre",
+      "expected": "none-demo",
+      "actual": "none-demo",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S09.raw",
+      "item": "prefix raw/",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S09.curated",
+      "item": "prefix curated/",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S09.quarantine",
+      "item": "prefix quarantine/",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S09.audit",
+      "item": "prefix audit/",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S09.evidence",
+      "item": "prefix evidence/",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-S09.athena-results",
+      "item": "prefix athena-results/",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-G01",
+      "item": "glue database exists",
+      "expected": "gxp_val_db",
+      "actual": "gxp_val_db",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-G02",
+      "item": "glue crawlers defined (must be zero)",
+      "expected": 0,
+      "actual": 0,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-A01",
+      "item": "athena workgroup exists",
+      "expected": "gxp-val-wg",
+      "actual": "gxp-val-wg",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-A02",
+      "item": "workgroup state",
+      "expected": "ENABLED",
+      "actual": "ENABLED",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-A03",
+      "item": "bytes scanned cutoff per query",
+      "expected": 104857600,
+      "actual": 104857600,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-A04",
+      "item": "enforce workgroup configuration",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-A05",
+      "item": "publish cloudwatch metrics",
+      "expected": true,
+      "actual": true,
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-A06",
+      "item": "result location",
+      "expected": "s3://gxp-val-029123882255-eu-west-1/athena-results/",
+      "actual": "s3://gxp-val-029123882255-eu-west-1/athena-results/",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-A07",
+      "item": "result encryption",
+      "expected": "SSE_S3",
+      "actual": "SSE_S3",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-N01",
+      "item": "sns topic exists",
+      "expected": "arn:aws:sns:eu-west-1:029123882255:gxp-val-alerts",
+      "actual": "arn:aws:sns:eu-west-1:029123882255:gxp-val-alerts",
+      "result": "PASS"
+    },
+    {
+      "check_id": "IQ-CFG-N02",
+      "item": "sns has at least one confirmed subscription",
+      "expected": true,
+      "actual": false,
+      "result": "FAIL"
+    }
+  ],
+  "summary": {
+    "total": 33,
+    "passed": 32,
+    "failed": 1
+  },
+  "overall": "FAIL"
+}

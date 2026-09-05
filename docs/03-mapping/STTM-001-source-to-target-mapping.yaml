@@ -1,0 +1,681 @@
+# =============================================================================
+# STTM-001  Source-to-Target Mapping Specification
+# =============================================================================
+# Migration of historical donor screening records
+#   Source : LEGACY-LIS v4.2 (blood screening laboratory, decommissioning)
+#   Target : Enterprise Data Platform on AWS (S3 / Glue Data Catalog / Athena)
+#
+# This file is the single source of truth for the mapping. It is consumed by:
+#   - src/migration/transform.py      -- to execute the mapping
+#   - src/reconciliation/controls.py  -- to derive the reconciliation controls
+#   - src/evidence/build_rtm.py       -- to generate the traceability matrix
+#
+# A mapping specification that is maintained separately from the code it
+# describes drifts from it. Here the specification IS the implementation input,
+# so the two cannot disagree.
+# =============================================================================
+
+metadata:
+  document_id: STTM-001
+  version: "1.0"
+  status: DRAFT
+  author: "Data Migration Validation"
+  source_system:
+    name: LEGACY-LIS
+    version: "4.2"
+    character_set: ISO-8859-1
+    delimiter: "|"
+    timestamp_format: "%d/%m/%Y %H:%M:%S"
+    timestamp_note: >-
+      Local wall-clock time. No UTC offset is stored anywhere in the schema.
+      Site timezone must be inferred from SITE_CODE.
+  target_system:
+    name: Enterprise Data Platform
+    storage: "s3 (parquet, snappy)"
+    catalogue: "AWS Glue Data Catalog"
+    query_engine: "Amazon Athena"
+    character_set: UTF-8
+    timestamp_convention: "UTC, ISO-8601, with source offset retained separately"
+    engine_note: >-
+      Athena stands in for the client's SQL warehouse in this demonstration
+      environment because it has no fixed cost. The reconciliation controls are
+      expressed in ANSI SQL and are portable to Snowflake or Redshift without
+      change. This substitution is a known limitation of the environment and is
+      recorded here rather than left implicit.
+
+# -----------------------------------------------------------------------------
+# Criticality drives test depth. See RA-001 for the full risk assessment.
+# -----------------------------------------------------------------------------
+criticality_levels:
+  critical: >-
+    Corruption could cause an unsuitable blood unit to be released, or a
+    suitable unit to be discarded. Patient-safety impact. 100% field-level
+    verification required; no sampling.
+  high: >-
+    Corruption breaks donor identification or the ability to trace a unit back
+    to its donor, defeating recall. 100% verification of keys, statistical
+    verification of attributes.
+  medium: >-
+    Operational or process metadata. Aggregate and statistical verification.
+  low: >-
+    Descriptive only. Row-count verification.
+
+# -----------------------------------------------------------------------------
+entities:
+
+  # ===========================================================================
+  - name: donor
+    source_file: DONOR.txt
+    target_table: donor
+    grain: One row per registered donor.
+    partition_by: null
+    load_strategy: full_snapshot
+    fields:
+
+      - target: donor_id
+        source: DONOR_ID
+        type: string
+        nullable: false
+        criticality: high
+        transform: trim
+        rule: Natural key. Carried through unchanged.
+        requirements: [URS-002]
+        controls: [REC-I01]
+
+      - target: national_id_hash
+        source: NATIONAL_ID
+        type: string
+        nullable: false
+        criticality: high
+        transform: "sha256(upper(trim(value)) + salt)"
+        rule: >-
+          The national identifier is a direct personal identifier and is not
+          required downstream in clear text. It is pseudonymised on load so the
+          target retains matching capability without holding the identifier.
+          The salt is held outside the data platform.
+        requirements: [URS-002, URS-013]
+        controls: [REC-A05]
+
+      - target: surname_1
+        source: SURNAME1
+        type: string
+        nullable: false
+        criticality: high
+        transform: "decode(latin-1) -> repair_double_encoding -> nfc_normalise"
+        rule: >-
+          A subset of source rows was double-encoded at rest before the
+          migration (see DEF-04). Repair is attempted; where the repair is not
+          unambiguous the original bytes are carried forward verbatim and the
+          row is flagged, never silently altered.
+        requirements: [URS-007]
+        controls: [REC-A03]
+        exposed_to_defects: [DEF-04]
+
+      - target: surname_2
+        source: SURNAME2
+        type: string
+        nullable: true
+        criticality: medium
+        transform: "decode(latin-1) -> repair_double_encoding -> nfc_normalise"
+        rule: As surname_1.
+        requirements: [URS-007]
+        controls: [REC-A03]
+        exposed_to_defects: [DEF-04]
+
+      - target: forename
+        source: FORENAME
+        type: string
+        nullable: false
+        criticality: high
+        transform: "decode(latin-1) -> repair_double_encoding -> nfc_normalise"
+        rule: As surname_1.
+        requirements: [URS-007]
+        controls: [REC-A03]
+        exposed_to_defects: [DEF-04]
+
+      - target: birth_date
+        source: BIRTH_DATE
+        type: date
+        nullable: false
+        criticality: high
+        transform: "parse_date(%Y-%m-%d)"
+        rule: >-
+          Already ISO-8601 in the source, unlike every other date field. Parsed
+          strictly; unparseable values quarantine the row.
+        requirements: [URS-002]
+        controls: [REC-A01]
+
+      - target: sex
+        source: SEX
+        type: string
+        nullable: true
+        criticality: low
+        transform: "map({M: male, F: female}, default: unknown)"
+        rule: Mapped to the target vocabulary; unmapped values become 'unknown'.
+        requirements: [URS-005]
+        controls: [REC-A04]
+
+      - target: abo_group
+        source: ABO
+        type: string
+        nullable: false
+        criticality: critical
+        transform: "upper(trim) -> assert in {A,B,AB,O}"
+        rule: >-
+          Blood group determines compatibility. Any value outside the closed
+          vocabulary quarantines the row; it is never defaulted or coerced.
+        requirements: [URS-003, URS-005]
+        controls: [REC-A04]
+
+      - target: rh_type
+        source: RH
+        type: string
+        nullable: false
+        criticality: critical
+        transform: "map({POS: positive, NEG: negative}) -> assert not null"
+        rule: As abo_group. No default permitted.
+        requirements: [URS-003, URS-005]
+        controls: [REC-A04]
+
+      - target: site_code
+        source: SITE_CODE
+        type: string
+        nullable: false
+        criticality: medium
+        transform: trim
+        rule: Also drives timezone resolution for this donor's donations.
+        requirements: [URS-004]
+        controls: [REC-A04]
+
+  # ===========================================================================
+  - name: donation
+    source_file: DONATION.txt
+    target_table: donation
+    grain: One row per donation event.
+    partition_by: [collection_year]
+    load_strategy: full_snapshot
+    fields:
+
+      - target: donation_id
+        source: DONATION_ID
+        type: string
+        nullable: false
+        criticality: critical
+        transform: trim
+        rule: >-
+          Primary key, and the identifier physically printed on the blood unit.
+          The source contains duplicates arising from a historical merge of two
+          site databases (DEF-06). Duplicates are quarantined in full -- ALL
+          rows sharing the key, not an arbitrary survivor -- because choosing a
+          survivor without provenance would be an undocumented data decision.
+        requirements: [URS-008, URS-011]
+        controls: [REC-I01]
+        exposed_to_defects: [DEF-06]
+
+      - target: donor_id
+        source: DONOR_ID
+        type: string
+        nullable: false
+        criticality: critical
+        transform: trim
+        rule: >-
+          Foreign key to donor. This link is what makes a recall possible: if a
+          donor is later found to be infected, every unit from that donor must
+          be traceable. A broken link here is a regulatory reportable event.
+        requirements: [URS-002, URS-009]
+        controls: [REC-I02]
+
+      - target: collection_ts_utc
+        source: COLLECTION_DT
+        type: timestamp
+        nullable: false
+        criticality: high
+        transform: "parse_local(%d/%m/%Y %H:%M:%S) -> localise(site_tz) -> to_utc"
+        rule: >-
+          Site timezone is resolved from SITE_CODE. Peninsular sites are
+          Europe/Madrid; LPA01 is Atlantic/Canary, a different offset. Instants
+          falling in the October DST fallback hour are genuinely ambiguous
+          (DEF-05): they are resolved to the FIRST occurrence, flagged, and the
+          ambiguity is recorded in the audit trail rather than hidden.
+        requirements: [URS-004]
+        controls: [REC-I04]
+        exposed_to_defects: [DEF-05]
+
+      - target: collection_ts_local
+        source: COLLECTION_DT
+        type: string
+        nullable: false
+        criticality: high
+        transform: "verbatim"
+        rule: >-
+          The original wall-clock string is retained unmodified alongside the
+          UTC value. ALCOA+ 'Original': a derived value never replaces the
+          source record, it accompanies it.
+        requirements: [URS-004, URS-010]
+        controls: [REC-I04]
+
+      - target: source_timezone
+        source: "derived from SITE_CODE"
+        type: string
+        nullable: false
+        criticality: high
+        transform: "lookup(site_timezone_map)"
+        rule: The offset the source never recorded, made explicit.
+        requirements: [URS-004]
+        controls: [REC-I04]
+
+      - target: collection_year
+        source: "derived from collection_ts_utc"
+        type: int
+        nullable: false
+        criticality: low
+        transform: "year(collection_ts_utc)"
+        rule: Partition key. Derived after UTC conversion, not before.
+        requirements: [URS-001]
+        controls: [REC-C02]
+
+      - target: component_type
+        source: COMPONENT_TYPE
+        type: string
+        nullable: false
+        criticality: medium
+        transform: "map({WB: whole_blood, APH-PLT: apheresis_platelets, APH-PLS: apheresis_plasma})"
+        rule: Closed vocabulary; unmapped values quarantine the row.
+        requirements: [URS-005]
+        controls: [REC-A04]
+
+      - target: volume_ml
+        source: VOLUME_ML
+        type: int
+        nullable: true
+        criticality: medium
+        transform: "to_int"
+        rule: Plausibility bounds 200-800 ml; outside bounds the row is flagged.
+        requirements: [URS-006]
+        controls: [REC-A01]
+
+      - target: operator_id
+        source: OPERATOR_ID
+        type: string
+        nullable: false
+        criticality: medium
+        transform: trim
+        rule: >-
+          ALCOA+ 'Attributable'. Retained so every donation remains linked to
+          the person who performed it.
+        requirements: [URS-010]
+        controls: [REC-A04]
+
+  # ===========================================================================
+  - name: result
+    source_file: RESULT.txt
+    target_table: screening_result
+    grain: One row per assay result per donation.
+    partition_by: [result_year]
+    load_strategy: full_snapshot
+    fields:
+
+      - target: result_id
+        source: RESULT_ID
+        type: string
+        nullable: false
+        criticality: high
+        transform: trim
+        rule: Primary key.
+        requirements: [URS-008]
+        controls: [REC-I01]
+
+      - target: donation_id
+        source: DONATION_ID
+        type: string
+        nullable: false
+        criticality: critical
+        transform: trim
+        rule: >-
+          Foreign key to donation. Orphan rows exist because the two extracts
+          were not taken atomically (DEF-07). Orphans are quarantined, never
+          loaded with a null parent and never dropped.
+        requirements: [URS-009, URS-011]
+        controls: [REC-I02]
+        exposed_to_defects: [DEF-07]
+
+      - target: assay_code_source
+        source: ASSAY_CODE
+        type: string
+        nullable: false
+        criticality: critical
+        transform: verbatim
+        rule: The legacy code is always retained, mapped or not.
+        requirements: [URS-005, URS-010]
+        controls: [REC-C03]
+
+      - target: assay_code_loinc
+        source: "derived from ASSAY_CODE"
+        type: string
+        nullable: true
+        criticality: critical
+        transform: "lookup(assay_catalogue.loinc)"
+        rule: >-
+          Two legacy assays have no agreed target code (DEF-01): LOC900
+          haemoglobin and LOC901 a retired HTLV assay. Null here is a REPORTED
+          GAP requiring a documented disposition from the data owner, not a
+          silent null. Rows are loaded with the legacy code intact and the
+          mapping gap flagged.
+        requirements: [URS-005, URS-011]
+        controls: [REC-C03]
+        exposed_to_defects: [DEF-01]
+
+      - target: result_code
+        source: RESULT_CODE
+        type: string
+        nullable: false
+        criticality: critical
+        transform: "upper(trim) -> map(RESULT_CODE_MAP)"
+        rule: >-
+          THE highest-criticality field in this migration. It carries the
+          screening outcome that determines whether a unit is released or
+          discarded. The legacy vocabulary accreted synonyms over 15 years
+          (NR / N / NEG all mean non-reactive) which must collapse to one
+          canonical term WITHOUT collapsing distinct meanings: INITIAL_REACTIVE
+          and REPEAT_REACTIVE are different clinical states and must not merge.
+          The undocumented sentinel '9999' means 'test not performed' (DEF-08)
+          and maps to NOT_PERFORMED, not to a result.
+        requirements: [URS-003, URS-005]
+        controls: [REC-A04, REC-C03]
+        exposed_to_defects: [DEF-08]
+
+      - target: result_value_numeric
+        source: RESULT_VALUE
+        type: decimal(10,3)
+        nullable: true
+        criticality: critical
+        transform: "normalise_numeric -> convert_unit"
+        rule: >-
+          Free-text in the source (DEF-03). Handles whitespace padding, comma
+          decimal separators, and censored values below the limit of detection
+          ('<0.10'). A censored value is NOT parsed as 0.10: the numeric field
+          is left null and the censoring is preserved in result_value_operator,
+          because '<0.10' and '0.10' are different assertions.
+        requirements: [URS-006]
+        controls: [REC-A01, REC-A02]
+        exposed_to_defects: [DEF-03]
+
+      - target: result_value_operator
+        source: RESULT_VALUE
+        type: string
+        nullable: true
+        criticality: critical
+        transform: "extract_comparator"
+        rule: >-
+          Captures '<' or '>' where the source value was censored. Without this
+          column the censoring information is destroyed by the migration.
+        requirements: [URS-006]
+        controls: [REC-A01]
+        exposed_to_defects: [DEF-03]
+
+      - target: result_value_raw
+        source: RESULT_VALUE
+        type: string
+        nullable: true
+        criticality: critical
+        transform: verbatim
+        rule: >-
+          ALCOA+ 'Original'. The untouched source string, retained so any
+          transformation can be independently re-derived and challenged.
+        requirements: [URS-006, URS-010]
+        controls: [REC-A01]
+
+      - target: unit_source
+        source: UNIT
+        type: string
+        nullable: true
+        criticality: critical
+        transform: verbatim
+        rule: The unit as recorded by the legacy system.
+        requirements: [URS-006]
+        controls: [REC-A02]
+
+      - target: unit_target
+        source: "derived from ASSAY_CODE"
+        type: string
+        nullable: true
+        criticality: critical
+        transform: "lookup(assay_catalogue.target_unit)"
+        rule: >-
+          Haemoglobin is g/dL in the source and g/L in the target (DEF-02), a
+          factor of ten. A migration that copies the number and the new unit
+          label produces a value that is wrong by an order of magnitude while
+          looking perfectly well-formed. Conversion factor is applied and
+          recorded per row.
+        requirements: [URS-006]
+        controls: [REC-A02]
+        exposed_to_defects: [DEF-02]
+
+      - target: unit_conversion_factor
+        source: "derived"
+        type: decimal(10,6)
+        nullable: true
+        criticality: critical
+        transform: "lookup(unit_conversion_map)"
+        rule: >-
+          Explicit and per-row, so the applied arithmetic is auditable rather
+          than buried in code.
+        requirements: [URS-006, URS-010]
+        controls: [REC-A02]
+
+      - target: result_ts_utc
+        source: RESULT_DT
+        type: timestamp
+        nullable: false
+        criticality: high
+        transform: "parse_local -> localise(site_tz) -> to_utc"
+        rule: As donation.collection_ts_utc.
+        requirements: [URS-004]
+        controls: [REC-I04]
+        exposed_to_defects: [DEF-05]
+
+      - target: result_year
+        source: "derived from result_ts_utc"
+        type: int
+        nullable: false
+        criticality: low
+        transform: "year(result_ts_utc)"
+        rule: Partition key.
+        requirements: [URS-001]
+        controls: [REC-C02]
+
+      - target: instrument_id
+        source: INSTRUMENT_ID
+        type: string
+        nullable: false
+        criticality: medium
+        transform: trim
+        rule: >-
+          ALCOA+ 'Attributable'. Links the result to the analyser that produced
+          it, which is required to scope any instrument-related investigation.
+        requirements: [URS-010]
+        controls: [REC-A04]
+
+      - target: operator_id
+        source: OPERATOR_ID
+        type: string
+        nullable: false
+        criticality: medium
+        transform: trim
+        rule: ALCOA+ 'Attributable'.
+        requirements: [URS-010]
+        controls: [REC-A04]
+
+      - target: review_flag
+        source: REVIEW_FLAG
+        type: boolean
+        nullable: false
+        criticality: medium
+        transform: "map({Y: true, '': false})"
+        rule: Indicates the result was manually reviewed in the legacy system.
+        requirements: [URS-010]
+        controls: [REC-A04]
+
+  # ===========================================================================
+  - name: qc_result
+    source_file: QC.txt
+    target_table: qc_result
+    grain: One row per quality-control run.
+    partition_by: [run_year]
+    load_strategy: full_snapshot
+    fields:
+
+      - target: qc_id
+        source: QC_ID
+        type: string
+        nullable: false
+        criticality: medium
+        transform: trim
+        rule: Primary key.
+        requirements: [URS-008]
+        controls: [REC-I01]
+
+      - target: assay_code_source
+        source: ASSAY_CODE
+        type: string
+        nullable: false
+        criticality: high
+        transform: verbatim
+        rule: Links QC evidence to the assay it qualifies.
+        requirements: [URS-005]
+        controls: [REC-C03]
+
+      - target: qc_lot
+        source: QC_LOT
+        type: string
+        nullable: false
+        criticality: high
+        transform: trim
+        rule: >-
+          QC records are the evidence that the analytical run was in control at
+          the time a patient result was produced. They are migrated with the
+          results, not separately: a result without its contemporaneous QC
+          cannot be defended in an inspection.
+        requirements: [URS-003, URS-010]
+        controls: [REC-A04]
+
+      - target: expected_value
+        source: EXPECTED_VALUE
+        type: decimal(10,3)
+        nullable: false
+        criticality: high
+        transform: normalise_numeric
+        rule: Target value for the control material.
+        requirements: [URS-006]
+        controls: [REC-A01]
+
+      - target: observed_value
+        source: OBSERVED_VALUE
+        type: decimal(10,3)
+        nullable: false
+        criticality: high
+        transform: normalise_numeric
+        rule: Measured value for the control material.
+        requirements: [URS-006]
+        controls: [REC-A01]
+
+      - target: qc_status
+        source: QC_STATUS
+        type: string
+        nullable: false
+        criticality: high
+        transform: "upper(trim) -> assert in {PASS, FAIL}"
+        rule: >-
+          Carried through verbatim. The migration does NOT recompute pass/fail
+          from expected and observed: the recorded historical determination is
+          the record of what the laboratory concluded at the time, and
+          recalculating it would replace history with a present-day opinion.
+          Any discrepancy between the recorded status and a recomputation is
+          reported as a finding for the data owner, not silently corrected.
+        requirements: [URS-003, URS-010]
+        controls: [REC-A04]
+
+      - target: run_ts_utc
+        source: RUN_DT
+        type: timestamp
+        nullable: false
+        criticality: high
+        transform: "parse_local -> localise(site_tz) -> to_utc"
+        rule: As other timestamps.
+        requirements: [URS-004]
+        controls: [REC-I04]
+
+      - target: run_year
+        source: "derived from run_ts_utc"
+        type: int
+        nullable: false
+        criticality: low
+        transform: "year(run_ts_utc)"
+        rule: Partition key.
+        requirements: [URS-001]
+        controls: [REC-C02]
+
+# -----------------------------------------------------------------------------
+# Lookup tables referenced by the transforms above.
+# -----------------------------------------------------------------------------
+lookups:
+
+  site_timezone_map:
+    BCN01: Europe/Madrid
+    BCN02: Europe/Madrid
+    MAD01: Europe/Madrid
+    VLC01: Europe/Madrid
+    LPA01: Atlantic/Canary
+
+  unit_conversion_map:
+    # from -> to : factor  (target_value = source_value * factor)
+    "g/dL->g/L": 10.0
+    "S/CO->ratio": 1.0
+
+  result_code_map:
+    NR: NON_REACTIVE
+    N: NON_REACTIVE
+    NEG: NON_REACTIVE
+    R: REACTIVE
+    REAC: REACTIVE
+    POS: REACTIVE
+    IR: INITIAL_REACTIVE
+    RR: REPEAT_REACTIVE
+    INV: INVALID
+    QNS: QUANTITY_NOT_SUFFICIENT
+    "9999": NOT_PERFORMED     # undocumented sentinel, DEF-08
+    A: BLOOD_GROUP_A
+    B: BLOOD_GROUP_B
+    AB: BLOOD_GROUP_AB
+    O: BLOOD_GROUP_O
+
+# -----------------------------------------------------------------------------
+# Quarantine policy: what happens to a row that cannot be migrated safely.
+# -----------------------------------------------------------------------------
+quarantine_policy:
+  principle: >-
+    No record is ever silently dropped or silently altered. A record that cannot
+    be migrated in conformance with this specification is written to the
+    quarantine store with the rule it violated, the original row verbatim, and a
+    timestamp. Quarantine is a queue for human disposition, not a bin.
+  reasons:
+    - code: QTN-01
+      description: Duplicate primary key
+      defect: DEF-06
+      disposition_owner: Data Owner (Laboratory)
+    - code: QTN-02
+      description: Referential integrity failure (orphan)
+      defect: DEF-07
+      disposition_owner: Data Owner (Laboratory)
+    - code: QTN-03
+      description: Value outside closed vocabulary
+      defect: DEF-08
+      disposition_owner: Data Steward
+    - code: QTN-04
+      description: Mandatory field null or unparseable
+      defect: DEF-03
+      disposition_owner: Data Steward
+    - code: QTN-05
+      description: Unmapped assay code
+      defect: DEF-01
+      disposition_owner: Laboratory Subject Matter Expert

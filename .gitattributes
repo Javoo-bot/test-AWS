@@ -1,0 +1,16 @@
+# The legacy extract files are byte-exact evidence. Their SHA-256 checksums are
+# recorded in data/legacy/MANIFEST.json and are reconciled by control REC-C01.
+#
+# Git's automatic line-ending normalisation would rewrite CRLF to LF on checkout
+# and silently invalidate every one of those checksums. These files are also
+# Latin-1 encoded, not UTF-8. Marking them -text stops Git touching either.
+#
+# This is the same integrity concern the pack documents under ALCOA+ 'Original':
+# a stored record must survive transport unaltered, and version control is
+# transport.
+data/legacy/*.txt -text
+data/legacy/MANIFEST.json -text
+
+# Evidence records are generated artefacts; keep them stable too.
+evidence/*.json -text
+data/_oracle/*.json -text

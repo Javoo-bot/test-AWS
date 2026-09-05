@@ -1,0 +1,158 @@
+# =============================================================================
+# CS-001  Configuration Specification
+# =============================================================================
+# The as-designed state of the target environment.
+#
+# This file is written BEFORE anything is created, and is the input to both:
+#   - infra/provision/provision.py     -- creates the environment from it
+#   - infra/provision/verify_install.py -- reads the real AWS state back and
+#                                          compares it against this document
+#
+# The point of separating the two is that provisioning and verification must not
+# share a code path. A verifier that trusts the provisioner's own return values
+# confirms only that the provisioner believes it succeeded. Reading the state
+# back from the service independently is what makes it qualification rather than
+# assertion.
+# =============================================================================
+
+metadata:
+  document_id: CS-001
+  version: "1.0"
+  environment: VALIDATION
+  region: eu-west-1
+  naming_convention: >-
+    All resources carry the gxp-val- prefix. The deployer principal is scoped to
+    that prefix, so the naming convention is an enforced boundary rather than a
+    guideline.
+
+# -----------------------------------------------------------------------------
+tags: &common_tags
+  Project: gxp-migration-validation
+  Environment: validation
+  ManagedBy: provision.py
+  CostCentre: none-demo
+
+# -----------------------------------------------------------------------------
+s3:
+  bucket_name_template: "gxp-val-{account_id}-{region}"
+  configuration:
+    block_public_access:
+      BlockPublicAcls: true
+      IgnorePublicAcls: true
+      BlockPublicPolicy: true
+      RestrictPublicBuckets: true
+      rationale: >-
+        The dataset is synthetic, but the control is not conditional on that.
+        A public-access block is the baseline for any bucket holding data that
+        represents patient records, and applying it here keeps the demonstration
+        honest about what production would require.
+    versioning: Enabled
+    versioning_rationale: >-
+      ALCOA+ 'Original' and 'Enduring'. Overwriting an object in place destroys
+      the prior version; versioning makes every write additive and recoverable,
+      which is what allows an auditor to reconstruct what the data looked like at
+      any point in the migration.
+    encryption:
+      algorithm: AES256
+      rationale: >-
+        SSE-S3 rather than SSE-KMS with a customer-managed key. A CMK costs 1 USD
+        per month regardless of use; SSE-S3 is free and encrypts at rest just the
+        same. In a regulated production environment a CMK would be specified for
+        the key-rotation and access-logging control it adds -- that difference is
+        recorded here rather than glossed over.
+    lifecycle_rules:
+      - id: expire-noncurrent-versions
+        status: Enabled
+        noncurrent_version_expiration_days: 30
+        rationale: Bounds storage growth from versioning in a demo account.
+      - id: abort-incomplete-uploads
+        status: Enabled
+        abort_incomplete_multipart_days: 7
+        rationale: Prevents orphaned multipart uploads accruing storage cost.
+  prefixes:
+    - path: raw/
+      purpose: Legacy extract exactly as received, never modified.
+    - path: curated/
+      purpose: Migrated records in Parquet, partitioned by year.
+    - path: quarantine/
+      purpose: Records that failed a mapping rule, with the rule they violated.
+    - path: audit/
+      purpose: Append-only audit trail of every transformation decision.
+    - path: evidence/
+      purpose: Execution evidence from qualification runs.
+    - path: athena-results/
+      purpose: Athena query output. Lifecycle-expired; not evidence.
+
+# -----------------------------------------------------------------------------
+glue:
+  database_name: gxp_val_db
+  description: "Target catalogue for migrated blood-screening records"
+  crawlers: []
+  crawler_rationale: >-
+    Deliberately none. Glue crawlers bill at 0.44 USD per DPU-hour with a
+    10-minute minimum per run, and they infer schema rather than enforce it.
+    Tables are created from explicit DDL derived from STTM-001, which means the
+    catalogue schema is a controlled artefact traceable to the mapping
+    specification instead of a guess made by a scanner.
+
+# -----------------------------------------------------------------------------
+athena:
+  workgroup_name: gxp-val-wg
+  configuration:
+    result_location_prefix: athena-results/
+    enforce_workgroup_configuration: true
+    publish_cloudwatch_metrics: true
+    bytes_scanned_cutoff_per_query: 104857600   # 100 MB
+    cutoff_rationale: >-
+      Athena has no free tier: it bills 5 USD per TB scanned with a 10 MB
+      minimum per query, so a query is about 0.00005 USD. The cutoff is a hard
+      ceiling that causes a runaway query to be cancelled by the service rather
+      than billed. enforce_workgroup_configuration prevents a client from
+      overriding it.
+    encryption:
+      option: SSE_S3
+
+# -----------------------------------------------------------------------------
+sns:
+  topic_name: gxp-val-alerts
+  purpose: >-
+    Notification channel for reconciliation failures. Free tier covers 1000
+    email notifications per month.
+
+# -----------------------------------------------------------------------------
+budgets:
+  name: gxp-val-cost-guard
+  limit_usd: 1.00
+  time_unit: MONTHLY
+  thresholds_percent: [50, 80, 100]
+  rationale: >-
+    The architecture is designed to cost approximately nothing, so a 1 USD
+    monthly budget is not a spending allowance -- it is a tripwire. Any alert at
+    all means something is running that the design did not account for.
+
+# -----------------------------------------------------------------------------
+# Services deliberately excluded, and why. An IQ that records only what was
+# installed is half a record; what was rejected and on what grounds is the other
+# half, and it is the half that shows a decision was made.
+# -----------------------------------------------------------------------------
+excluded_services:
+  - service: AWS Glue Crawlers / ETL Jobs
+    reason: Billable compute (0.44 USD/DPU-hour, 10-minute minimum).
+    control: Explicit IAM Deny, verified by IQ-AUTH-B07 and IQ-AUTH-B08.
+  - service: Amazon Redshift
+    reason: No free tier. Athena provides the SQL surface the controls need.
+    control: Explicit IAM Deny, verified by IQ-AUTH-B09.
+  - service: AWS KMS customer-managed key
+    reason: 1 USD/month fixed cost. SSE-S3 gives encryption at rest at no cost.
+    control: Encryption explicitly specified as AES256 above.
+  - service: Amazon Kinesis / EMR / SageMaker / MWAA / OpenSearch
+    reason: Not required by this architecture; all bill by the hour.
+    control: Explicit IAM Deny, verified by IQ-AUTH-B10 through IQ-AUTH-B13.
+  - service: AWS CloudTrail data events
+    reason: >-
+      Management events are free and cover the control-plane actions this
+      migration performs. S3 object-level data events bill at 0.10 USD per
+      100k events. Object-level provenance is instead captured by the
+      application audit trail, which records the transformation decision as
+      well as the access -- more useful evidence than the access alone.
+    control: No trail with data events is created.

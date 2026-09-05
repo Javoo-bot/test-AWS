@@ -1,0 +1,39 @@
+{
+  "extract_id": "EXT-20260905",
+  "source_system": "LEGACY-LIS v4.2 (decommissioning)",
+  "extract_timestamp_local": "05/09/2026 23:10:00",
+  "extract_window": {
+    "from": "2020-01-01",
+    "to": "2024-12-31"
+  },
+  "character_set": "ISO-8859-1",
+  "delimiter": "|",
+  "files": [
+    {
+      "file": "DONOR.txt",
+      "bytes": 34720,
+      "sha256": "89fa75c2c8bad48ec1f5eef08a5c4d09ba6a0274ae4d77abaeb59af927c8915b"
+    },
+    {
+      "file": "DONATION.txt",
+      "bytes": 85986,
+      "sha256": "b5764eb4f642ebb8fedb45f06d041f5cf3c07e1ad7470d10e22f392888567616"
+    },
+    {
+      "file": "RESULT.txt",
+      "bytes": 1079362,
+      "sha256": "92b2a745b3824dec45658f282eca3bf4f5e2c3ff69b7fedd257cf421be1e80ae"
+    },
+    {
+      "file": "QC.txt",
+      "bytes": 27295,
+      "sha256": "2266e0199c5adbac3eeebb089d345853f02fb3034329337ea4dfd98c1482044c"
+    }
+  ],
+  "declared_row_counts": {
+    "DONOR": 500,
+    "DONATION": 1204,
+    "RESULT": 13734,
+    "QC": 400
+  }
+}
