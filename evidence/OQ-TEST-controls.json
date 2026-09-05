@@ -1,0 +1,217 @@
+{
+  "protocol": "OQ-TEST",
+  "title": "Requirement-tagged control tests",
+  "executed_utc": "2026-09-05T11:21:58.283735+00:00",
+  "tests": [
+    {
+      "test": "test_every_source_row_is_accounted_for",
+      "requirements": [
+        "URS-001"
+      ],
+      "controls": [
+        "REC-C02"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0001,
+      "docstring": "Migrated plus quarantined equals the source row count exactly."
+    },
+    {
+      "test": "test_every_quarantined_record_carries_its_disposition",
+      "requirements": [
+        "URS-011"
+      ],
+      "controls": [
+        "REC-I03"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0001,
+      "docstring": "No record is quarantined without a reason code, rule and verbatim source row."
+    },
+    {
+      "test": "test_quarantine_reasons_are_from_the_controlled_set",
+      "requirements": [
+        "URS-011"
+      ],
+      "controls": [
+        "REC-I03"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0001,
+      "docstring": "Quarantine reasons come from STTM-001, not from free text."
+    },
+    {
+      "test": "test_audit_entries_are_complete",
+      "requirements": [
+        "URS-010"
+      ],
+      "controls": [
+        "REC-A05"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0022,
+      "docstring": "Every audit entry carries enough to re-derive or challenge the decision."
+    },
+    {
+      "test": "test_audit_records_no_untouched_values",
+      "requirements": [
+        "URS-010"
+      ],
+      "controls": [
+        "REC-A05"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0029,
+      "docstring": "Only decisions that altered, flagged or rejected a value are recorded."
+    },
+    {
+      "test": "test_every_repair_retains_the_original",
+      "requirements": [
+        "URS-010"
+      ],
+      "controls": [
+        "REC-A05"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0027,
+      "docstring": "A repair without the original value cannot be challenged, so is not evidence."
+    },
+    {
+      "test": "test_audit_entries_cite_a_requirement",
+      "requirements": [
+        "URS-010"
+      ],
+      "controls": [
+        "REC-A05"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0022,
+      "docstring": "Every recorded decision traces to a requirement in URS-001."
+    },
+    {
+      "test": "test_national_identifier_is_not_in_the_target",
+      "requirements": [
+        "URS-013"
+      ],
+      "controls": [
+        "REC-A05"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0139,
+      "docstring": "No source national identifier appears in the target in clear text."
+    },
+    {
+      "test": "test_pseudonym_is_a_hash_and_is_stable",
+      "requirements": [
+        "URS-013"
+      ],
+      "controls": [
+        "REC-A05"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0016,
+      "docstring": "The replacement is a fixed-length digest, and distinct donors stay distinct."
+    },
+    {
+      "test": "test_distinct_clinical_states_are_not_merged",
+      "requirements": [
+        "URS-003"
+      ],
+      "controls": [
+        "REC-A04"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0015,
+      "docstring": "INITIAL_REACTIVE and REPEAT_REACTIVE survive as separate determinations."
+    },
+    {
+      "test": "test_censored_values_are_not_parsed_as_numbers",
+      "requirements": [
+        "URS-006"
+      ],
+      "controls": [
+        "REC-A01"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0014,
+      "docstring": "'<0.10' keeps its comparator and does not become the number 0.10."
+    },
+    {
+      "test": "test_unit_conversion_factor_is_recorded_per_record",
+      "requirements": [
+        "URS-006"
+      ],
+      "controls": [
+        "REC-A02"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0021,
+      "docstring": "Converted values carry the factor, so the arithmetic stays auditable."
+    },
+    {
+      "test": "test_local_timestamp_is_retained_alongside_utc",
+      "requirements": [
+        "URS-004"
+      ],
+      "controls": [
+        "REC-I04"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0002,
+      "docstring": "ALCOA+ Original: the derived UTC value never replaces the source string."
+    },
+    {
+      "test": "test_ambiguous_timestamps_are_flagged_not_hidden",
+      "requirements": [
+        "URS-004"
+      ],
+      "controls": [
+        "REC-I04"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0002,
+      "docstring": "Instants inside the DST fallback hour are marked, not silently resolved."
+    },
+    {
+      "test": "test_no_duplicate_keys_reach_the_target",
+      "requirements": [
+        "URS-008"
+      ],
+      "controls": [
+        "REC-I01"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0031,
+      "docstring": "Primary keys are unique in every migrated entity."
+    },
+    {
+      "test": "test_no_orphan_results_reach_the_target",
+      "requirements": [
+        "URS-009"
+      ],
+      "controls": [
+        "REC-I02"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0016,
+      "docstring": "Every migrated result resolves to a migrated donation."
+    },
+    {
+      "test": "test_every_donation_traces_to_a_donor",
+      "requirements": [
+        "URS-002"
+      ],
+      "controls": [
+        "REC-I02"
+      ],
+      "outcome": "passed",
+      "duration_s": 0.0003,
+      "docstring": "Donor-to-donation linkage survives, so lookback remains possible."
+    }
+  ],
+  "summary": {
+    "total": 17,
+    "passed": 17,
+    "failed": 0
+  },
+  "overall": "PASS"
+}

@@ -157,7 +157,25 @@ def convert_unit(value: Optional[float], from_unit: Optional[str],
     returned so it lands in its own column and the arithmetic stays auditable
     rather than buried in this function.
     """
-    if value is None or not from_unit or not to_unit:
+    if not from_unit or not to_unit:
+        return Decision(value, STATUS_OK, "convert_unit", "URS-006",
+                        extra={"factor": None})
+
+    if value is None and from_unit != to_unit:
+        # No value to convert, but the unit mismatch is still a property of the
+        # record and still has to be visible. Returning 'ok' here was a real
+        # control gap: censored results carry a source unit that differs from
+        # the target one, and reporting nothing left that difference invisible
+        # on every row whose value was below the limit of detection.
+        return Decision(
+            None, STATUS_FLAGGED, "convert_unit", "URS-006",
+            note=f"unit differs ({from_unit} -> {to_unit}) but the value is "
+                 f"null, so no conversion was applied",
+            extra={"factor": conversion_map.get(f"{from_unit}->{to_unit}"),
+                   "value_absent": True},
+        )
+
+    if value is None:
         return Decision(value, STATUS_OK, "convert_unit", "URS-006",
                         extra={"factor": None})
 

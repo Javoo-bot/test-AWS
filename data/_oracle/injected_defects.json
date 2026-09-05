@@ -41,49 +41,31 @@
       "defect_id": "DEF-05",
       "table": "DONATION",
       "key": "BCN02-2020-000105",
-      "note": "local time 2021-10-31 02:30 occurs twice; no offset recorded"
+      "note": "local time 2021-10-31 02:30 occurs twice at Europe/Madrid; no offset recorded"
     },
     {
       "defect_id": "DEF-05",
       "table": "DONATION",
       "key": "LPA01-2023-000133",
-      "note": "local time 2020-10-25 02:30 occurs twice; no offset recorded"
-    },
-    {
-      "defect_id": "DEF-05",
-      "table": "DONATION",
-      "key": "MAD01-2021-000216",
-      "note": "local time 2023-10-29 02:30 occurs twice; no offset recorded"
+      "note": "local time 2020-10-25 02:30 occurs twice at Europe/Madrid; no offset recorded"
     },
     {
       "defect_id": "DEF-05",
       "table": "DONATION",
       "key": "BCN01-2020-000220",
-      "note": "local time 2020-10-25 02:30 occurs twice; no offset recorded"
+      "note": "local time 2020-10-25 02:30 occurs twice at Europe/Madrid; no offset recorded"
     },
     {
       "defect_id": "DEF-05",
       "table": "DONATION",
       "key": "BCN01-2020-000370",
-      "note": "local time 2024-10-27 02:30 occurs twice; no offset recorded"
-    },
-    {
-      "defect_id": "DEF-05",
-      "table": "DONATION",
-      "key": "LPA01-2024-000539",
-      "note": "local time 2023-10-29 02:30 occurs twice; no offset recorded"
-    },
-    {
-      "defect_id": "DEF-05",
-      "table": "DONATION",
-      "key": "VLC01-2020-001125",
-      "note": "local time 2020-10-25 02:30 occurs twice; no offset recorded"
+      "note": "local time 2024-10-27 02:30 occurs twice at Europe/Madrid; no offset recorded"
     },
     {
       "defect_id": "DEF-05",
       "table": "DONATION",
       "key": "BCN01-2023-001163",
-      "note": "local time 2020-10-25 02:30 occurs twice; no offset recorded"
+      "note": "local time 2020-10-25 02:30 occurs twice at Europe/Madrid; no offset recorded"
     },
     {
       "defect_id": "DEF-06",
@@ -5468,12 +5450,6 @@
       "note": "comma decimal separator"
     },
     {
-      "defect_id": "DEF-03",
-      "table": "RESULT",
-      "key": "R00002964",
-      "note": "censored value below limit of detection"
-    },
-    {
       "defect_id": "DEF-08",
       "table": "RESULT",
       "key": "R00002964",
@@ -7704,12 +7680,6 @@
       "table": "RESULT",
       "key": "R00004105",
       "note": "assay LOC900 has no target vocabulary code"
-    },
-    {
-      "defect_id": "DEF-03",
-      "table": "RESULT",
-      "key": "R00004110",
-      "note": "comma decimal separator"
     },
     {
       "defect_id": "DEF-08",
@@ -10116,12 +10086,6 @@
       "table": "RESULT",
       "key": "R00005368",
       "note": "assay LOC900 has no target vocabulary code"
-    },
-    {
-      "defect_id": "DEF-03",
-      "table": "RESULT",
-      "key": "R00005376",
-      "note": "censored value below limit of detection"
     },
     {
       "defect_id": "DEF-08",
@@ -17198,12 +17162,6 @@
       "note": "assay LOC901 has no target vocabulary code"
     },
     {
-      "defect_id": "DEF-03",
-      "table": "RESULT",
-      "key": "R00009241",
-      "note": "comma decimal separator"
-    },
-    {
       "defect_id": "DEF-08",
       "table": "RESULT",
       "key": "R00009241",
@@ -17970,12 +17928,6 @@
       "table": "RESULT",
       "key": "R00009655",
       "note": "censored value below limit of detection"
-    },
-    {
-      "defect_id": "DEF-03",
-      "table": "RESULT",
-      "key": "R00009656",
-      "note": "whitespace-padded numeric"
     },
     {
       "defect_id": "DEF-08",
@@ -20748,12 +20700,6 @@
       "table": "RESULT",
       "key": "R00011088",
       "note": "assay LOC900 has no target vocabulary code"
-    },
-    {
-      "defect_id": "DEF-03",
-      "table": "RESULT",
-      "key": "R00011092",
-      "note": "whitespace-padded numeric"
     },
     {
       "defect_id": "DEF-08",

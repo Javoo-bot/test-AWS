@@ -4,532 +4,279 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Donor Screening Migration Pack</title>
-<meta name="description" content="A data migration validation package for a legacy blood-screening LIS moving to AWS in a GxP-regulated context. Nine defects injected on purpose.">
+<meta name="description" content="A GxP data migration validation pack: legacy blood-screening LIS to AWS. Nine defects injected on purpose, all nine contained, every source row accounted for.">
 <meta property="og:title" content="Donor Screening Migration Pack">
-<meta property="og:description" content="A data migration validation package for a legacy blood-screening LIS moving to AWS in a GxP-regulated context. Nine defects injected on purpose.">
-<meta property="og:type" content="website">
+<meta property="og:description" content="A GxP data migration validation pack. Nine defects injected on purpose, all nine contained, every source row accounted for.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%A7%AA%3C/text%3E%3C/svg%3E">
-<style>
-  html { -moz-text-size-adjust: none; -webkit-text-size-adjust: none; text-size-adjust: none; }
-  body { margin: 0; }
-  img { max-width: 100%; }
-  [hidden] { display: none !important; }
-</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap">
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
 <style>
-  :root {
-    --ground:      #F6F7F6;
-    --surface:     #FFFFFF;
-    --surface-alt: #EDF0EF;
-    --rule:        #D3DAD8;
-    --rule-strong: #B3BEBB;
-    --ink:         #141D1B;
-    --ink-muted:   #56635F;
-    --ink-faint:   #7C8884;
-    --accent:      #0E5257;
-    --accent-soft: #DCE9E9;
-    --pass:        #2F6B4F;
-    --pass-soft:   #E0EDE5;
-    --flag:        #9A6114;
-    --flag-soft:   #F5E9D6;
-    --critical:    #8C3A2B;
-    --critical-soft:#F3E1DD;
-
-    --f-display: "IBM Plex Serif", Georgia, "Times New Roman", serif;
-    --f-body:    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --f-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-
-    --measure: 68ch;
-    --pad: clamp(1.25rem, 4vw, 3.5rem);
-    color-scheme: light;
+  :root{
+    --ground:#F6F7F6; --surface:#FFFFFF; --surface-alt:#EDF0EF;
+    --rule:#D6DCDA; --rule-strong:#B3BEBB;
+    --ink:#141D1B; --ink-muted:#54615D; --ink-faint:#7B8783;
+    --accent:#0E5257;
+    --mark-a:#12959B;          /* caught by its own control */
+    --mark-b:#C87F1A;          /* contained via quarantine  */
+    --good:#2F6B4F; --good-soft:#E2EEE7;
+    --f-display:"IBM Plex Serif",Georgia,serif;
+    --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+    color-scheme:light;
   }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ground:      #0E1413;
-      --surface:     #151D1B;
-      --surface-alt: #1C2624;
-      --rule:        #2A3634;
-      --rule-strong: #3D4C49;
-      --ink:         #E3EAE7;
-      --ink-muted:   #9BA9A5;
-      --ink-faint:   #74827E;
-      --accent:      #54A9A6;
-      --accent-soft: #17302F;
-      --pass:        #6DBF95;
-      --pass-soft:   #14291F;
-      --flag:        #D9A356;
-      --flag-soft:   #2B2113;
-      --critical:    #D68272;
-      --critical-soft:#2E1A16;
-      color-scheme: dark;
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0E1413; --surface:#151D1B; --surface-alt:#1C2624;
+      --rule:#2A3634; --rule-strong:#3D4C49;
+      --ink:#E3EAE7; --ink-muted:#9DABA7; --ink-faint:#75837F;
+      --accent:#54A9A6; --mark-a:#26A0A5; --mark-b:#C27E26;
+      --good:#6DBF95; --good-soft:#16291F;
+      color-scheme:dark;
     }
   }
+  :root[data-theme="dark"]{
+    --ground:#0E1413; --surface:#151D1B; --surface-alt:#1C2624;
+    --rule:#2A3634; --rule-strong:#3D4C49;
+    --ink:#E3EAE7; --ink-muted:#9DABA7; --ink-faint:#75837F;
+    --accent:#54A9A6; --mark-a:#26A0A5; --mark-b:#C27E26;
+    --good:#6DBF95; --good-soft:#16291F;
+    color-scheme:dark;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:none;text-size-adjust:none}
+  body{margin:0;background:var(--ground);color:var(--ink);
+       font-family:var(--f-body);font-size:16px;line-height:1.55;
+       -webkit-font-smoothing:antialiased}
+  img{max-width:100%}
+  .wrap{max-width:62rem;margin:0 auto;padding:0 clamp(1.15rem,4vw,2.5rem) 4rem}
 
-  :root[data-theme="dark"] {
-    --ground:      #0E1413;
-    --surface:     #151D1B;
-    --surface-alt: #1C2624;
-    --rule:        #2A3634;
-    --rule-strong: #3D4C49;
-    --ink:         #E3EAE7;
-    --ink-muted:   #9BA9A5;
-    --ink-faint:   #74827E;
-    --accent:      #54A9A6;
-    --accent-soft: #17302F;
-    --pass:        #6DBF95;
-    --pass-soft:   #14291F;
-    --flag:        #D9A356;
-    --flag-soft:   #2B2113;
-    --critical:    #D68272;
-    --critical-soft:#2E1A16;
-    color-scheme: dark;
-  }
+  /* header */
+  header{padding:2.75rem 0 0}
+  .eyebrow{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--accent);margin:0 0 .85rem}
+  h1{font-family:var(--f-display);font-weight:600;
+     font-size:clamp(1.9rem,5vw,2.85rem);line-height:1.08;letter-spacing:-.02em;
+     margin:0 0 .6rem;max-width:18ch;text-wrap:balance}
+  .sub{font-family:var(--f-display);font-size:clamp(1rem,2vw,1.15rem);
+       color:var(--ink-muted);max-width:46ch;margin:0 0 1.75rem}
 
-  *, *::before, *::after { box-sizing: border-box; }
+  /* hero reconciliation */
+  .recon{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.4rem 1.1rem;
+         border-top:2px solid var(--ink);border-bottom:1px solid var(--rule-strong);
+         padding:1.4rem 0}
+  .term{display:flex;flex-direction:column;gap:.15rem}
+  .term .n{font-family:var(--f-mono);font-size:clamp(1.35rem,4vw,2rem);
+           font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+  .term .l{font-family:var(--f-mono);font-size:.625rem;letter-spacing:.09em;
+           text-transform:uppercase;color:var(--ink-faint)}
+  .op{font-family:var(--f-mono);font-size:1.15rem;color:var(--ink-faint);
+      padding-bottom:.15rem}
+  .term.zero .n{color:var(--good)}
+  .term.zero .l{color:var(--good)}
+  .recon-note{font-size:.8125rem;color:var(--ink-muted);margin:.7rem 0 0}
 
-  body {
-    background: var(--ground);
-    color: var(--ink);
-    font-family: var(--f-body);
-    font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
+  /* sections */
+  section{margin-top:3rem}
+  .sechead{display:flex;align-items:baseline;gap:.75rem;
+           border-bottom:1px solid var(--rule-strong);padding-bottom:.45rem;
+           margin-bottom:1.15rem}
+  .sechead h2{font-family:var(--f-display);font-size:1.25rem;font-weight:600;
+              margin:0;letter-spacing:-.01em}
+  .sechead .ref{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.07em;
+                color:var(--ink-faint);margin-left:auto;white-space:nowrap}
+  p{max-width:64ch;margin:0 0 .85rem}
+  p:last-child{margin-bottom:0}
+  code{font-family:var(--f-mono);font-size:.875em;background:var(--surface-alt);
+       padding:.1em .34em;border-radius:2px}
+  a{color:var(--accent)}
 
-  .wrap {
-    max-width: 78rem;
-    margin: 0 auto;
-    padding: 0 var(--pad) 5rem;
-  }
+  /* defect grid */
+  .legend{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;
+          font-size:.75rem;color:var(--ink-muted)}
+  .key{display:inline-flex;align-items:center;gap:.4rem}
+  .sw{width:.85rem;height:.6rem;border-radius:2px;flex:none}
+  .sw.a{background:var(--mark-a)} .sw.b{background:var(--mark-b)}
+  .grid{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}
+  @media(min-width:38rem){.grid{grid-template-columns:1fr 1fr}}
+  @media(min-width:60rem){.grid{grid-template-columns:1fr 1fr 1fr}}
+  .cell{background:var(--surface);padding:.85rem .95rem;display:flex;
+        flex-direction:column;gap:.45rem}
+  .cell .top{display:flex;align-items:baseline;gap:.5rem}
+  .cell .did{font-family:var(--f-mono);font-size:.75rem;color:var(--accent)}
+  .cell .cnt{font-family:var(--f-mono);font-size:.75rem;color:var(--ink-faint);
+             margin-left:auto;font-variant-numeric:tabular-nums}
+  .cell .nm{font-size:.8125rem;line-height:1.3}
+  .bar{display:flex;height:.5rem;gap:2px;border-radius:2px;overflow:hidden}
+  .seg{border-radius:2px;min-width:3px}
+  .seg.a{background:var(--mark-a)} .seg.b{background:var(--mark-b)}
+  .cell .st{font-family:var(--f-mono);font-size:.625rem;letter-spacing:.05em;
+            color:var(--good)}
 
-  /* ---------- document control header ---------- */
-  .docctl {
-    border-bottom: 2px solid var(--ink);
-    padding: 2.5rem 0 1.25rem;
-    margin-bottom: 2.5rem;
-  }
-  .eyebrow {
-    font-family: var(--f-mono);
-    font-size: .6875rem;
-    letter-spacing: .13em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin: 0 0 1rem;
-  }
-  h1 {
-    font-family: var(--f-display);
-    font-weight: 600;
-    font-size: clamp(2rem, 5.5vw, 3.25rem);
-    line-height: 1.08;
-    letter-spacing: -.02em;
-    text-wrap: balance;
-    margin: 0 0 .75rem;
-    max-width: 20ch;
-  }
-  .standfirst {
-    font-family: var(--f-display);
-    font-size: clamp(1.0625rem, 2vw, 1.25rem);
-    line-height: 1.5;
-    color: var(--ink-muted);
-    max-width: 54ch;
-    margin: 0 0 2rem;
-  }
-  .ctlgrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-    gap: 1px;
-    background: var(--rule);
-    border: 1px solid var(--rule);
-  }
-  .ctlgrid div {
-    background: var(--surface);
-    padding: .6875rem .875rem;
-  }
-  .ctlgrid dt {
-    font-family: var(--f-mono);
-    font-size: .625rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 0 0 .25rem;
-  }
-  .ctlgrid dd {
-    font-family: var(--f-mono);
-    font-size: .8125rem;
-    font-weight: 500;
-    margin: 0;
-    color: var(--ink);
-  }
+  /* provenance */
+  .prov{background:var(--surface);border:1px solid var(--rule-strong);
+        border-left:3px solid var(--accent);padding:1.15rem 1.3rem}
+  .prov dl{margin:0;display:grid;gap:.7rem}
+  @media(min-width:44rem){.prov dl{grid-template-columns:auto 1fr;gap:.7rem 1.3rem}}
+  .prov dt{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.07em;
+           text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
+  .prov dd{margin:0;font-size:.9375rem}
 
-  /* ---------- primary link ---------- */
-  .repo {
-    display: inline-flex;
-    align-items: center;
-    gap: .625rem;
-    margin-top: 1.5rem;
-    padding: .8125rem 1.25rem;
-    background: var(--accent);
-    color: var(--ground);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: .9375rem;
-    border-radius: 2px;
-    transition: opacity .15s ease;
-  }
-  :root[data-theme="dark"] .repo,
-  :root:not([data-theme="light"]) .repo { color: #0E1413; }
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) .repo { color: #F6F7F6; }
-  }
-  .repo:hover { opacity: .85; }
-  .repo:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-  .repo .arrow { font-family: var(--f-mono); }
+  /* byte exhibit */
+  .rows{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);
+        margin-bottom:.9rem}
+  .row{background:var(--surface);display:grid;gap:.35rem;padding:.75rem .95rem}
+  @media(min-width:46rem){.row{grid-template-columns:6.5rem 1fr auto;
+                               align-items:center;gap:1rem}}
+  .row .who{font-family:var(--f-mono);font-size:.75rem;color:var(--ink-faint)}
+  .row .by{font-family:var(--f-mono);font-size:.8125rem;overflow-x:auto;
+           white-space:nowrap}
+  .row .by b{color:var(--mark-b);font-weight:500}
+  .vd{font-family:var(--f-mono);font-size:.6875rem;padding:.18rem .5rem;
+      border-radius:2px;white-space:nowrap;background:var(--surface-alt);
+      color:var(--ink-muted)}
+  .vd.bad{background:var(--good-soft);color:var(--good)}
 
-  /* ---------- sections ---------- */
-  section { margin-top: 4rem; }
-  .sechead {
-    display: flex;
-    align-items: baseline;
-    gap: .875rem;
-    border-bottom: 1px solid var(--rule-strong);
-    padding-bottom: .5rem;
-    margin-bottom: 1.5rem;
-  }
-  .sechead h2 {
-    font-family: var(--f-display);
-    font-size: 1.375rem;
-    font-weight: 600;
-    letter-spacing: -.01em;
-    margin: 0;
-  }
-  .sechead .ref {
-    font-family: var(--f-mono);
-    font-size: .6875rem;
-    letter-spacing: .08em;
-    color: var(--ink-faint);
-    margin-left: auto;
-    white-space: nowrap;
-  }
-  p { max-width: var(--measure); margin: 0 0 1rem; }
-  p:last-child { margin-bottom: 0; }
-  .lede { font-size: 1.0625rem; }
-  strong { font-weight: 600; }
-  em { font-style: italic; }
-  code {
-    font-family: var(--f-mono);
-    font-size: .875em;
-    background: var(--surface-alt);
-    padding: .1em .35em;
-    border-radius: 2px;
-  }
+  /* links */
+  .links{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.15rem}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.1rem;
+       text-decoration:none;font-weight:500;font-size:.9rem;border-radius:2px;
+       border:1px solid var(--rule-strong);color:var(--ink);background:var(--surface)}
+  .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--ground)}
+  .btn:hover{opacity:.85}
+  .btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 
-  /* ---------- defect table ---------- */
-  .scroll { overflow-x: auto; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: .875rem;
-    min-width: 40rem;
-  }
-  thead th {
-    font-family: var(--f-mono);
-    font-size: .625rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    text-align: left;
-    font-weight: 500;
-    padding: 0 .875rem .5rem 0;
-    border-bottom: 1px solid var(--rule-strong);
-  }
-  tbody td {
-    padding: .6875rem .875rem .6875rem 0;
-    border-bottom: 1px solid var(--rule);
-    vertical-align: top;
-  }
-  tbody tr:last-child td { border-bottom: none; }
-  td.id { font-family: var(--f-mono); font-size: .8125rem; color: var(--accent); white-space: nowrap; }
-  td.why { color: var(--ink-muted); }
-  .dim {
-    font-family: var(--f-mono);
-    font-size: .625rem;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    padding: .15rem .45rem;
-    border-radius: 2px;
-    white-space: nowrap;
-  }
-  .dim.completeness { background: var(--accent-soft); color: var(--accent); }
-  .dim.accuracy     { background: var(--critical-soft); color: var(--critical); }
-  .dim.integrity    { background: var(--flag-soft); color: var(--flag); }
-  .dim.consistency  { background: var(--surface-alt); color: var(--ink-muted); }
-
-  /* ---------- byte exhibit ---------- */
-  .exhibit {
-    background: var(--surface);
-    border: 1px solid var(--rule-strong);
-    border-left: 3px solid var(--critical);
-    padding: 1.5rem;
-    margin-top: 1.5rem;
-  }
-  .exhibit-label {
-    font-family: var(--f-mono);
-    font-size: .625rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--critical);
-    margin: 0 0 1rem;
-  }
-  .rows { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  .row {
-    background: var(--surface);
-    display: grid;
-    grid-template-columns: minmax(0,1fr);
-    gap: .4rem;
-    padding: .875rem 1rem;
-  }
-  @media (min-width: 46rem) {
-    .row { grid-template-columns: 7rem minmax(0,1fr) auto; align-items: center; gap: 1rem; }
-  }
-  .row .who { font-family: var(--f-mono); font-size: .75rem; color: var(--ink-faint); }
-  .row .bytes { font-family: var(--f-mono); font-size: .8125rem; overflow-x: auto; white-space: nowrap; }
-  .row .bytes b { color: var(--critical); font-weight: 500; }
-  .verdict {
-    font-family: var(--f-mono);
-    font-size: .6875rem;
-    letter-spacing: .04em;
-    padding: .2rem .5rem;
-    border-radius: 2px;
-    white-space: nowrap;
-  }
-  .verdict.good { background: var(--pass-soft); color: var(--pass); }
-  .verdict.bad  { background: var(--critical-soft); color: var(--critical); }
-  .exhibit p { margin: 1rem 0 0; font-size: .9375rem; color: var(--ink-muted); max-width: 62ch; }
-
-  /* ---------- pipeline ---------- */
-  .pipe {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: .5rem;
-    margin-bottom: 1.25rem;
-  }
-  .node {
-    flex: 1 1 8rem;
-    background: var(--surface);
-    border: 1px solid var(--rule-strong);
-    padding: .75rem .875rem;
-    border-radius: 2px;
-  }
-  .node .n-label { font-family: var(--f-mono); font-size: .625rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: .2rem; }
-  .node .n-name { font-size: .875rem; font-weight: 500; }
-  .node.hi { border-color: var(--accent); background: var(--accent-soft); }
-  .node.hi .n-name { color: var(--accent); }
-  .arrowcell { display: flex; align-items: center; color: var(--ink-faint); font-family: var(--f-mono); padding: 0 .1rem; }
-
-  /* ---------- evidence panel ---------- */
-  .ev { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  @media (min-width: 44rem) { .ev { grid-template-columns: repeat(3, 1fr); } }
-  .ev-cell { background: var(--surface); padding: 1.125rem 1.25rem; display: flex; flex-direction: column; gap: .4rem; }
-  .ev-cell .proto { font-family: var(--f-mono); font-size: .6875rem; letter-spacing: .08em; color: var(--ink-faint); }
-  .ev-cell .score { font-family: var(--f-mono); font-size: 1.75rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; }
-  .ev-cell .score.p { color: var(--pass); }
-  .ev-cell .score.f { color: var(--flag); }
-  .ev-cell .what { font-size: .8125rem; color: var(--ink-muted); }
-
-  /* ---------- findings ---------- */
-  .finding { border-top: 1px solid var(--rule); padding-top: 1.25rem; margin-top: 1.25rem; }
-  .finding:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
-  .finding h3 { font-family: var(--f-display); font-size: 1.0625rem; font-weight: 600; margin: 0 0 .4rem; }
-
-  /* ---------- footer ---------- */
-  footer {
-    margin-top: 4.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--rule);
-    font-size: .8125rem;
-    color: var(--ink-faint);
-  }
-  footer p { max-width: var(--measure); }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-  }
+  footer{margin-top:3.5rem;padding-top:1rem;border-top:1px solid var(--rule);
+         font-size:.8125rem;color:var(--ink-faint)}
+  footer p{max-width:64ch}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-
 </head>
 <body>
 <div class="wrap">
 
-  <header class="docctl">
-    <p class="eyebrow">Data migration validation · GxP</p>
-    <h1>Donor Screening Migration</h1>
-    <p class="standfirst">
-      Five years of blood-donor screening records move off a Laboratory Information
-      System being decommissioned. Documents a regulator would accept, over code
-      that actually runs.
-    </p>
-    <dl class="ctlgrid">
-      <div><dt>Source</dt><dd>LEGACY-LIS 4.2</dd></div>
-      <div><dt>Target</dt><dd>AWS · S3 / Glue / Athena</dd></div>
-      <div><dt>Records</dt><dd>15,839</dd></div>
-      <div><dt>Mapped fields</dt><dd>43 · 14 critical</dd></div>
-      <div><dt>Run cost</dt><dd>$0.00</dd></div>
+<header>
+  <p class="eyebrow">GxP data migration validation</p>
+  <h1>Donor Screening Migration</h1>
+  <p class="sub">Five years of blood-donor screening records off a laboratory system being decommissioned, onto AWS.</p>
+
+  <div class="recon">
+    <div class="term"><span class="n">15,839</span><span class="l">source rows</span></div>
+    <span class="op">−</span>
+    <div class="term"><span class="n">15,733</span><span class="l">migrated</span></div>
+    <span class="op">−</span>
+    <div class="term"><span class="n">106</span><span class="l">quarantined</span></div>
+    <span class="op">=</span>
+    <div class="term zero"><span class="n">0</span><span class="l">unaccounted</span></div>
+  </div>
+  <p class="recon-note">Nothing was dropped and nothing was invented. Every quarantined row carries the rule it violated and its source record verbatim.</p>
+</header>
+
+<section>
+  <div class="sechead"><h2>Nine defects, injected on purpose</h2><span class="ref">9/9 contained</span></div>
+  <p>A validation pack where everything passes has proved nothing. Nine known defects were planted in the source, each drawn from a failure mode that recurs in real system decommissioning. The migration code never sees the list.</p>
+
+  <div class="legend">
+    <span class="key"><span class="sw a"></span> caught by its own control — 4,261</span>
+    <span class="key"><span class="sw b"></span> contained by an earlier control — 30</span>
+  </div>
+
+  <div class="grid">
+    <div class="cell"><div class="top"><span class="did">DEF-01</span><span class="cnt">1,689</span></div>
+      <span class="nm">Assay codes with no target equivalent</span>
+      <div class="bar"><span class="seg a" style="flex:1677"></span><span class="seg b" style="flex:12"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-02</span><span class="cnt">1,204</span></div>
+      <span class="nm">Haemoglobin g/dL where target expects g/L</span>
+      <div class="bar"><span class="seg a" style="flex:1196"></span><span class="seg b" style="flex:8"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-03</span><span class="cnt">1,271</span></div>
+      <span class="nm">Censored, padded and comma-decimal numerics</span>
+      <div class="bar"><span class="seg a" style="flex:1261"></span><span class="seg b" style="flex:10"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-04</span><span class="cnt">6</span></div>
+      <span class="nm">Donor names double-encoded at rest</span>
+      <div class="bar"><span class="seg a" style="flex:6"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-05</span><span class="cnt">5</span></div>
+      <span class="nm">Timestamps inside the DST fallback hour</span>
+      <div class="bar"><span class="seg a" style="flex:5"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-06</span><span class="cnt">4</span></div>
+      <span class="nm">Duplicate donation identifiers</span>
+      <div class="bar"><span class="seg a" style="flex:4"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-07</span><span class="cnt">6</span></div>
+      <span class="nm">Results referencing absent donations</span>
+      <div class="bar"><span class="seg a" style="flex:6"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-08</span><span class="cnt">105</span></div>
+      <span class="nm">Undocumented sentinel <code>9999</code></span>
+      <div class="bar"><span class="seg a" style="flex:105"></span></div>
+      <span class="st">CONTAINED</span></div>
+    <div class="cell"><div class="top"><span class="did">DEF-09</span><span class="cnt">1</span></div>
+      <span class="nm">Manifest total disagrees with the file</span>
+      <div class="bar"><span class="seg a" style="flex:1"></span></div>
+      <span class="st">CONTAINED</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><h2>Where the data comes from</h2><span class="ref">Synthetic · reproducible</span></div>
+  <div class="prov">
+    <dl>
+      <dt>Origin</dt>
+      <dd>Generated by a script in this repository. No real patient records are involved, and none were available — which is the normal constraint when demonstrating this work outside a client engagement.</dd>
+      <dt>Modelled on</dt>
+      <dd>A donor screening laboratory. The assay panel is the marker set mandated for allogeneic blood donation screening under EU Directive 2002/98/EC — NAT and serology for HIV, HBV and HCV, plus syphilis and anti-HBc — carrying real LOINC codes.</dd>
+      <dt>Shape</dt>
+      <dd>What a fifteen-year-old system actually hands over: pipe-delimited flat files, Latin-1 encoded, local wall-clock timestamps with no offset column, numeric results held as free text, and a control-total manifest.</dd>
+      <dt>Reproducible</dt>
+      <dd>Deterministic from a seed. The same seed reproduces the same 15,839 rows and the same SHA-256 checksums, so the dataset the evidence was produced from can be regenerated exactly.</dd>
+      <dt>Known answer</dt>
+      <dd>The injected defects are logged to an oracle file that the migration code never reads. Detection is attributed afterwards, from which control fired — so the migration cannot be tuned to the answer.</dd>
     </dl>
-    <a class="repo" href="https://github.com/Javoo-bot/test-AWS">
-      Read the repository <span class="arrow">→</span>
-    </a>
-  </header>
+  </div>
+</section>
 
-  <section>
-    <div class="sechead"><h2>Why donor screening</h2><span class="ref">Risk basis</span></div>
-    <p class="lede">
-      In blood screening the assay result decides whether a unit is
-      <strong>released for transfusion or destroyed</strong>.
-    </p>
-    <p>
-      That single fact sets test depth for every field in the pack. A value corrupted
-      in migration is not a defect report, it is a patient-safety event — so the
-      risk-based testing argument rests on consequence rather than on opinion.
-    </p>
-  </section>
+<section>
+  <div class="sechead"><h2>Why one defect is worth showing</h2><span class="ref">DEF-04</span></div>
+  <div class="rows">
+    <div class="row"><span class="who">D000001</span>
+      <span class="by">46 65 72 72 <b>e1</b> 6e 64 65 7a</span>
+      <span class="vd">clean Latin-1</span></div>
+    <div class="row"><span class="who">D000028</span>
+      <span class="by">56 <b>c3 ad</b> 6c 63 68 65 7a</span>
+      <span class="vd bad">double-encoded</span></div>
+  </div>
+  <p>Byte <code>e1</code> is not valid UTF-8, so the <strong>clean</strong> row displays as <code>Ferr�ndez</code> and looks broken. The pair <code>c3 ad</code> <em>is</em> valid UTF-8, so the <strong>corrupt</strong> row displays as <code>Vílchez</code> and looks perfect.</p>
+  <p>The corruption is invisible to the eye and provable at the byte level. Six donors in five hundred. This is why migration verification is done on bytes and counts rather than by looking at a sample.</p>
+</section>
 
-  <section>
-    <div class="sechead"><h2>Nine defects, injected on purpose</h2><span class="ref">STTM-001</span></div>
-    <p>A validation pack in which everything passes has proved nothing. Each defect below is drawn from a failure mode that recurs in real LIS decommissioning, and each traces to a requirement, a mapping rule, a control and a risk rating.</p>
-    <div class="scroll">
-      <table>
-        <thead>
-          <tr><th>ID</th><th>Defect</th><th>Dimension</th><th>Why it happens</th></tr>
-        </thead>
-        <tbody>
-          <tr><td class="id">DEF-01</td><td>Legacy assay codes with no target equivalent</td><td><span class="dim completeness">completeness</span></td><td class="why">Every legacy LIS grows proprietary codes</td></tr>
-          <tr><td class="id">DEF-02</td><td>Haemoglobin <code>g/dL</code> → <code>g/L</code></td><td><span class="dim accuracy">accuracy</span></td><td class="why">Wrong by ten times, and perfectly well-formed</td></tr>
-          <tr><td class="id">DEF-03</td><td>Censored <code>&lt;0.10</code>, padded, comma decimals</td><td><span class="dim accuracy">accuracy</span></td><td class="why">Results held as free text</td></tr>
-          <tr><td class="id">DEF-04</td><td>Donor names double-encoded at rest</td><td><span class="dim accuracy">accuracy</span></td><td class="why">Corruption predating the migration</td></tr>
-          <tr><td class="id">DEF-05</td><td>Wall-clock times, two offsets, DST fallback hour</td><td><span class="dim consistency">consistency</span></td><td class="why">Source schema has no offset column</td></tr>
-          <tr><td class="id">DEF-06</td><td>Duplicate donation identifiers</td><td><span class="dim integrity">integrity</span></td><td class="why">Artefact of a historical site-database merge</td></tr>
-          <tr><td class="id">DEF-07</td><td>Orphan results</td><td><span class="dim integrity">integrity</span></td><td class="why">Extract windows not taken atomically</td></tr>
-          <tr><td class="id">DEF-08</td><td>Sentinel <code>9999</code> meaning "not performed"</td><td><span class="dim accuracy">accuracy</span></td><td class="why">Absent from the legacy data dictionary</td></tr>
-          <tr><td class="id">DEF-09</td><td>Manifest control total ≠ file contents</td><td><span class="dim completeness">completeness</span></td><td class="why">Count taken before the last row was flushed</td></tr>
-        </tbody>
-      </table>
-    </div>
+<section>
+  <div class="sechead"><h2>What was produced</h2><span class="ref">Executed against live AWS</span></div>
+  <div class="prov">
+    <dl>
+      <dt>Specification</dt>
+      <dd>Source-to-target mapping of 43 fields, 14 rated critical, consumed directly by the transform and by the traceability matrix — so the specification and the code cannot silently disagree.</dd>
+      <dt>Traceability</dt>
+      <dd>13 requirements, 12 controls, all VERIFIED. The matrix is generated from runs that happened, not typed. Its first generation reported three requirements whose controls nothing exercised; those gaps were closed rather than edited out.</dd>
+      <dt>Evidence</dt>
+      <dd>24,773 audit entries, each carrying the rule applied, the requirement it serves and the original value. 17 requirement-tagged tests. Installation qualification run against real AWS: 23/23 on credential scope, 32/33 on configuration.</dd>
+      <dt>Open deviation</dt>
+      <dd>One check fails and is left failing: the alerting topic has no confirmed subscriber. A pack that reports only what passed is describing a rehearsal.</dd>
+    </dl>
+  </div>
+  <div class="links">
+    <a class="btn pri" href="https://github.com/Javoo-bot/test-AWS">Repository →</a>
+    <a class="btn" href="https://github.com/Javoo-bot/test-AWS/blob/main/docs/04-traceability/RTM-001-traceability-matrix.md">Traceability matrix</a>
+    <a class="btn" href="https://github.com/Javoo-bot/test-AWS/tree/main/evidence">Evidence records</a>
+  </div>
+</section>
 
-    <div class="exhibit">
-      <p class="exhibit-label">Exhibit · DEF-04 · why it survives review</p>
-      <div class="rows">
-        <div class="row">
-          <span class="who">D000001</span>
-          <span class="bytes">46 65 72 72 <b>e1</b> 6e 64 65 7a &nbsp;·&nbsp; Ferrández</span>
-          <span class="verdict good">clean Latin-1</span>
-        </div>
-        <div class="row">
-          <span class="who">D000028</span>
-          <span class="bytes">56 <b>c3 ad</b> 6c 63 68 65 7a &nbsp;·&nbsp; Vílchez</span>
-          <span class="verdict bad">double-encoded</span>
-        </div>
-      </div>
-      <p>
-        Byte <code>e1</code> is not valid UTF-8, so the <em>clean</em> row renders as
-        <code>Ferr�ndez</code> and looks broken. The sequence <code>c3 ad</code>
-        <em>is</em> valid UTF-8, so the <em>corrupt</em> row renders correctly.
-        The inversion is why this defect passes visual inspection and reaches
-        production — six of five hundred donors, invisible to the eye, provable at
-        the byte level.
-      </p>
-    </div>
-  </section>
-
-  <section>
-    <div class="sechead"><h2>Architecture</h2><span class="ref">CS-001</span></div>
-    <div class="pipe">
-      <div class="node"><span class="n-label">S3</span><span class="n-name">raw/</span></div>
-      <div class="arrowcell">→</div>
-      <div class="node hi"><span class="n-label">Lambda</span><span class="n-name">transform</span></div>
-      <div class="arrowcell">→</div>
-      <div class="node"><span class="n-label">S3</span><span class="n-name">curated · quarantine · audit</span></div>
-      <div class="arrowcell">→</div>
-      <div class="node"><span class="n-label">Glue</span><span class="n-name">Data Catalog</span></div>
-      <div class="arrowcell">→</div>
-      <div class="node hi"><span class="n-label">Athena</span><span class="n-name">reconciliation</span></div>
-    </div>
-    <p>
-      <strong>No Glue crawler.</strong> Crawlers bill $0.44 per DPU-hour with a
-      ten-minute minimum, and they <em>infer</em> schema rather than enforce it.
-      Tables come from DDL derived from the mapping specification, so the catalogue
-      is a controlled artefact rather than a scanner's guess.
-    </p>
-    <p>
-      <strong>Athena stands in for the client's warehouse.</strong> The reconciliation
-      controls are ANSI SQL and port to Snowflake or Redshift unchanged. That
-      substitution is a limitation of a zero-cost environment, and it is recorded in
-      the configuration specification rather than left implicit.
-    </p>
-  </section>
-
-  <section>
-    <div class="sechead"><h2>Qualification evidence</h2><span class="ref">Executed against live AWS</span></div>
-    <div class="ev">
-      <div class="ev-cell">
-        <span class="proto">IQ-AUTH</span>
-        <span class="score p">23/23</span>
-        <span class="what">Credential scope, verified twice over: live API reachability and the IAM policy simulator.</span>
-      </div>
-      <div class="ev-cell">
-        <span class="proto">IQ-CONFIG</span>
-        <span class="score f">32/33</span>
-        <span class="what">As-built read back from AWS and compared to specification. One open deviation: no confirmed alert subscriber.</span>
-      </div>
-      <div class="ev-cell">
-        <span class="proto">Defects injected</span>
-        <span class="score p">9</span>
-        <span class="what">Ground truth held in an oracle the migration code cannot read, making the suite a known-answer test.</span>
-      </div>
-    </div>
-    <p style="margin-top:1.25rem">
-      The deviation is left open rather than closed quietly. A pack that reports only
-      what passed is describing a rehearsal, not a qualification.
-    </p>
-  </section>
-
-  <section>
-    <div class="sechead"><h2>Two findings from building it</h2><span class="ref">Controls that were not controls</span></div>
-    <div class="finding">
-      <h3>An IAM deny that never fires</h3>
-      <p>
-        The deployer policy restricted Lambda memory through a
-        <code>lambda:MemorySize</code> condition key. That key does not exist — AWS
-        never exposes memory in the authorisation context. Two further denies used
-        invalid service prefixes. All three sat there looking like guard rails while
-        matching nothing.
-      </p>
-    </div>
-    <div class="finding">
-      <h3>A negative test that could not fail</h3>
-      <p>
-        Denials were first tested by calling non-existent resources. S3 answers
-        <code>NoSuchBucket</code>, which at the client is indistinguishable from a
-        refusal, so the probe reported a pass on an inconclusive result. It was
-        rewritten against the IAM policy simulator, which returns the authorisation
-        decision itself and separates an <em>explicit</em> deny from an
-        <em>implicit</em> one.
-      </p>
-    </div>
-  </section>
-
-  <footer>
-    <p>
-      Synthetic data throughout; no real patient records. Account identifiers in the
-      published evidence are redacted — no verdict or timestamp altered. Assay panel
-      and LOINC codes reflect markers mandated for allogeneic donation screening under
-      Directive 2002/98/EC.
-    </p>
-  </footer>
+<footer>
+  <p>Synthetic data throughout; no real patient records. Account identifiers in the published evidence are redacted, with no verdict or timestamp altered. Runs on AWS free-tier services at a cost of $0.00.</p>
+</footer>
 
 </div>
 </body>

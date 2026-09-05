@@ -19,6 +19,7 @@ import hashlib
 import json
 import random
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from legacy_sim.domain import (
     ABO_GROUPS, ASSAY_CATALOGUE, FORENAMES, RH_TYPES, SITES, SURNAMES,
@@ -107,11 +108,22 @@ def build(seed, n_donors, n_donations):
         site = rng.choice(SITES)
 
         # DEF-05: a handful of collections land in the DST fallback hour.
+        #
+        # Ambiguity is a property of the SITE's timezone, not of the wall-clock
+        # value. Peninsular Spain falls back 03:00 -> 02:00, so 02:30 occurs
+        # twice; the Canary Islands fall back at 01:00, so the same 02:30 is
+        # perfectly unambiguous there. Logging the defect without checking the
+        # site made the oracle over-count, which the known-answer verification
+        # then correctly reported as three missed detections that were not
+        # misses at all.
         if rng.random() < 0.004:
             collected = rng.choice(DST_AMBIGUOUS_LOCAL)
-            log("DEF-05", "DONATION", donation_id,
-                "local time %s occurs twice; no offset recorded"
-                % collected.strftime("%Y-%m-%d %H:%M"))
+            site_tz = ZoneInfo(site[2])
+            if (collected.replace(tzinfo=site_tz).utcoffset()
+                    != collected.replace(tzinfo=site_tz, fold=1).utcoffset()):
+                log("DEF-05", "DONATION", donation_id,
+                    "local time %s occurs twice at %s; no offset recorded"
+                    % (collected.strftime("%Y-%m-%d %H:%M"), site[2]))
         else:
             collected = dt.datetime.combine(
                 EXTRACT_WINDOW_START + dt.timedelta(days=rng.randint(0, span_days)),
@@ -165,19 +177,20 @@ def build(seed, n_donors, n_donations):
                         weights=[70, 12, 10, 4, 2, 2],
                     )[0]
                     value = ""
-            else:
+            pending_value_defects = []
+            if kind != "QUAL":
                 # DEF-03: signal-to-cutoff ratios held as free text.
                 roll = rng.random()
                 if roll < 0.06:
                     value = "<0.10"
-                    log("DEF-03", "RESULT", result_id,
+                    pending_value_defects.append(
                         "censored value below limit of detection")
                 elif roll < 0.12:
                     value = "  %.2f  " % rng.uniform(0.02, 0.9)
-                    log("DEF-03", "RESULT", result_id, "whitespace-padded numeric")
+                    pending_value_defects.append("whitespace-padded numeric")
                 elif roll < 0.17:
                     value = ("%.2f" % rng.uniform(0.02, 0.9)).replace(".", ",")
-                    log("DEF-03", "RESULT", result_id, "comma decimal separator")
+                    pending_value_defects.append("comma decimal separator")
                 elif legacy_code == "LOC900":
                     value = "%.1f" % rng.uniform(12.5, 17.5)   # g/dL, target wants g/L
                 else:
@@ -190,9 +203,20 @@ def build(seed, n_donors, n_donations):
                 code = "R" if sco >= 1.0 else "NR"
 
             # DEF-08: undocumented sentinel meaning 'test not performed'.
+            #
+            # The sentinel overwrites the value, which erases any formatting
+            # defect previously placed on this row. Those pending entries are
+            # discarded rather than logged: an oracle that claims a defect the
+            # data no longer carries makes the verification report misses that
+            # are not misses. The unit mismatch is NOT discarded -- the unit
+            # columns still disagree whether or not a value is present.
             if rng.random() < 0.008:
                 code, value = "9999", ""
+                pending_value_defects = []
                 log("DEF-08", "RESULT", result_id, "sentinel 9999 = test not performed")
+
+            for note in pending_value_defects:
+                log("DEF-03", "RESULT", result_id, note)
 
             if legacy_code == "LOC900":
                 log("DEF-02", "RESULT", result_id,

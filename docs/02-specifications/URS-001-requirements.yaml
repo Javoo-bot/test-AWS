@@ -1,0 +1,263 @@
+# =============================================================================
+# URS-001  User Requirements Specification
+# =============================================================================
+# Migration of historical donor screening records from LEGACY-LIS 4.2 to the
+# AWS data platform.
+#
+# Machine-readable on purpose. This file is the input to the traceability matrix
+# generator, so a requirement cannot exist in the RTM without existing here, and
+# cannot be marked verified without a control and an evidence record naming it.
+# A hand-maintained RTM drifts the moment anything changes; a generated one
+# fails loudly instead.
+# =============================================================================
+
+metadata:
+  document_id: URS-001
+  version: "1.0"
+  status: DRAFT
+  scope: >-
+    Five years of donor screening records (2020-01-01 to 2024-12-31): donor
+    demographics, donations, screening results and contemporaneous quality
+    control records.
+  out_of_scope:
+    - Real-time interfacing with analysers; this is a historical migration only.
+    - Decommissioning of the legacy application itself, covered separately.
+    - Migration of free-text clinical comments, which the data owner has
+      confirmed are not required in the target.
+
+requirements:
+
+  - id: URS-001
+    statement: >-
+      All records within the agreed extract window shall be migrated, and every
+      source record shall be accounted for as either migrated or quarantined.
+    rationale: >-
+      Completeness is the first question an inspector asks of a migration.
+      "Nothing was lost" is only demonstrable if every source row has a known
+      destination.
+    criticality: critical
+    acceptance_criteria: >-
+      migrated + quarantined = source row count, exactly, for every entity.
+    verified_by: [REC-C01, REC-C02]
+
+  - id: URS-002
+    statement: >-
+      Each donation shall remain traceable to the donor who gave it.
+    rationale: >-
+      If a donor is later found to be infected, every unit from that donor must
+      be identifiable for recall. A broken donor-to-donation link defeats the
+      lookback procedure and is a reportable event.
+    criticality: critical
+    acceptance_criteria: >-
+      Every migrated donation carries a donor_id resolving to a migrated donor.
+    verified_by: [REC-I02]
+
+  - id: URS-003
+    statement: >-
+      The screening result determining unit disposition shall be migrated
+      without alteration of meaning.
+    rationale: >-
+      This value decides whether a unit is released for transfusion or
+      destroyed. Synonyms may be collapsed; distinct clinical states may not.
+    criticality: critical
+    acceptance_criteria: >-
+      Every source result code maps to exactly one target term; INITIAL_REACTIVE
+      and REPEAT_REACTIVE remain distinct; no code is defaulted or inferred.
+    verified_by: [REC-A04, REC-C03]
+
+  - id: URS-004
+    statement: >-
+      All timestamps shall be expressed unambiguously in UTC, with the source
+      local value and the applied offset retained.
+    rationale: >-
+      The legacy schema stores local wall-clock time with no offset. Sites span
+      two offsets and some instants occur twice. Without the offset recorded,
+      the target cannot state when anything happened.
+    criticality: high
+    acceptance_criteria: >-
+      Every migrated timestamp has a UTC value, the original local string, and a
+      resolved source timezone. Genuinely ambiguous instants are flagged, not
+      silently resolved.
+    verified_by: [REC-I04]
+
+  - id: URS-005
+    statement: >-
+      Legacy coded values shall map to the target controlled vocabulary.
+      Unmapped codes shall be reported, never silently dropped or defaulted.
+    rationale: >-
+      A reported gap and a silent null look identical in the target table. The
+      difference is entirely whether anyone was told.
+    criticality: critical
+    acceptance_criteria: >-
+      Every source code either maps, or produces a finding naming the code, the
+      affected row count and the disposition owner.
+    verified_by: [REC-A04, REC-C03]
+
+  - id: URS-006
+    statement: >-
+      Numeric results shall be migrated with their unit, converted where source
+      and target units differ, and the conversion factor recorded per record.
+    rationale: >-
+      Copying a number and relabelling its unit produces a value wrong by an
+      order of magnitude that passes every schema check. Censoring below the
+      limit of detection is information and must survive.
+    criticality: critical
+    acceptance_criteria: >-
+      Unit differences are detected whether or not a value is present; censored
+      values retain their comparator and do not become plain numbers.
+    verified_by: [REC-A01, REC-A02]
+
+  - id: URS-007
+    statement: >-
+      Character fidelity of donor names shall be preserved. Repairs of
+      pre-existing corruption shall be recorded, and shall not be applied where
+      the repair would be speculative.
+    rationale: >-
+      Some source names were double-encoded at rest before this project began.
+      Repairing them is desirable; guessing at them is not.
+    criticality: high
+    acceptance_criteria: >-
+      Every repair is recorded with the original bytes. Ambiguous cases carry
+      the original forward and are flagged for review.
+    verified_by: [REC-A03]
+
+  - id: URS-008
+    statement: >-
+      Primary key uniqueness shall be enforced in the target.
+    rationale: >-
+      The donation identifier is printed on the physical blood unit. A duplicate
+      silently collapsing to one row means the target disagrees with the label
+      on a bag of blood.
+    criticality: critical
+    acceptance_criteria: >-
+      No duplicate key reaches the target. All rows sharing a duplicated key are
+      quarantined, not an arbitrary survivor.
+    verified_by: [REC-I01]
+
+  - id: URS-009
+    statement: >-
+      Referential integrity between results and donations shall be enforced.
+    rationale: >-
+      A result with no donation cannot be interpreted, attributed or acted on.
+    criticality: critical
+    acceptance_criteria: >-
+      No orphan reaches the target; orphans are quarantined with the missing
+      parent identified.
+    verified_by: [REC-I02]
+
+  - id: URS-010
+    statement: >-
+      Every transformation that alters, flags or rejects a value shall be
+      recorded in an audit trail sufficient to re-derive or challenge it.
+    rationale: >-
+      ALCOA+ Attributable, Original and Accurate. A transformed value on its own
+      is not evidence; the rule that produced it and the original input are what
+      make it defensible.
+    criticality: critical
+    acceptance_criteria: >-
+      Each audit entry carries the entity, key, field, rule, requirement,
+      original value, resulting value and a rationale.
+    verified_by: [REC-A05]
+
+  - id: URS-011
+    statement: >-
+      No record shall be silently discarded. Records that cannot be migrated in
+      conformance with STTM-001 shall be quarantined with the rule violated.
+    rationale: >-
+      Quarantine is a queue for human disposition, not a bin. Silent loss is the
+      failure mode that migrations are least able to detect after the fact.
+    criticality: critical
+    acceptance_criteria: >-
+      Every quarantined record carries a reason code, the rule violated and the
+      complete source row verbatim.
+    verified_by: [REC-C02, REC-I03]
+
+  - id: URS-012
+    statement: >-
+      Source control totals shall be reconciled against the source files
+      themselves before any comparison with the target.
+    rationale: >-
+      A source-to-target count match proves nothing if the source count was
+      never verified: both sides simply agree on the wrong number.
+    criticality: high
+    acceptance_criteria: >-
+      Manifest row counts and file checksums are verified; any disagreement is
+      raised as a portfolio-level finding before migration proceeds.
+    verified_by: [REC-C01]
+
+  - id: URS-013
+    statement: >-
+      Direct personal identifiers not required downstream shall be pseudonymised
+      on load.
+    rationale: >-
+      Data minimisation. The target retains matching capability without holding
+      the national identifier in clear text.
+    criticality: high
+    acceptance_criteria: >-
+      No national identifier appears in the target in clear text; the salt is
+      held outside the data platform.
+    verified_by: [REC-A05]
+
+# -----------------------------------------------------------------------------
+# Reconciliation controls. Each is implemented in code and produces evidence.
+# -----------------------------------------------------------------------------
+controls:
+  - id: REC-C01
+    name: Source manifest reconciliation
+    level: portfolio
+    implemented_in: src/migration/pipeline.py::control_c01_manifest
+
+  - id: REC-C02
+    name: Source-to-target row accounting
+    level: portfolio
+    implemented_in: src/migration/pipeline.py::main
+
+  - id: REC-C03
+    name: Assay code coverage
+    level: field
+    implemented_in: src/migration/transforms.py::map_assay
+
+  - id: REC-A01
+    name: Numeric parse and censoring preservation
+    level: field
+    implemented_in: src/migration/transforms.py::normalise_numeric
+
+  - id: REC-A02
+    name: Unit-aware value comparison
+    level: field
+    implemented_in: src/migration/transforms.py::convert_unit
+
+  - id: REC-A03
+    name: Character set validation
+    level: field
+    implemented_in: src/migration/transforms.py::repair_double_encoding
+
+  - id: REC-A04
+    name: Controlled vocabulary conformance
+    level: field
+    implemented_in: src/migration/transforms.py::map_result_code
+
+  - id: REC-A05
+    name: Audit trail completeness
+    level: record
+    implemented_in: src/migration/pipeline.py::Run.audit_decision
+
+  - id: REC-I01
+    name: Primary key uniqueness
+    level: data object
+    implemented_in: src/migration/pipeline.py::control_i01_uniqueness
+
+  - id: REC-I02
+    name: Referential integrity
+    level: data object
+    implemented_in: src/migration/pipeline.py::control_i02_referential
+
+  - id: REC-I03
+    name: Quarantine disposition completeness
+    level: record
+    implemented_in: src/migration/pipeline.py::Run.reject
+
+  - id: REC-I04
+    name: Temporal integrity
+    level: field
+    implemented_in: src/migration/transforms.py::to_utc

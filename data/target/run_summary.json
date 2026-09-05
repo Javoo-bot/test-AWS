@@ -1,0 +1,91 @@
+{
+  "run_id": "MIG-20260905T111906Z",
+  "started_utc": "2026-09-05T11:19:06.799748+00:00",
+  "finished_utc": "2026-09-05T11:19:07.181358+00:00",
+  "source_rows": {
+    "DONOR": 500,
+    "DONATION": 1204,
+    "RESULT": 13735,
+    "QC": 400
+  },
+  "migrated_rows": {
+    "donor": 500,
+    "donation": 1196,
+    "screening_result": 13637,
+    "qc_result": 400
+  },
+  "quarantined": 106,
+  "audit_entries": 24773,
+  "quarantine_by_reason": {
+    "QTN-01": 100,
+    "QTN-02": 6
+  },
+  "decisions_by_status": {
+    "repaired": 22030,
+    "flagged": 2743
+  },
+  "findings": [
+    {
+      "control": "REC-C01",
+      "level": "portfolio",
+      "severity": "major",
+      "summary": "RESULT: manifest declares 13734 rows, file holds 13735",
+      "detail": {
+        "declared": 13734,
+        "actual": 13735,
+        "delta": 1,
+        "interpretation": "source extract is internally inconsistent; control totals cannot be trusted until the data owner confirms which figure is correct"
+      }
+    },
+    {
+      "control": "REC-I01",
+      "level": "data object",
+      "severity": "critical",
+      "summary": "donation: 4 duplicated DONATION_ID value(s) affecting 8 rows",
+      "detail": {
+        "keys": [
+          "BCN01-2022-001037",
+          "BCN02-2023-000458",
+          "LPA01-2022-000362",
+          "VLC01-2021-000841"
+        ]
+      }
+    },
+    {
+      "control": "REC-I02",
+      "level": "data object",
+      "severity": "critical",
+      "summary": "screening_result: 6 row(s) reference a DONATION_ID absent from the extract",
+      "detail": {
+        "missing_parents": [
+          "BCN01-2019-900000",
+          "BCN01-2019-900001",
+          "BCN01-2019-900002",
+          "BCN01-2019-900003",
+          "BCN01-2019-900004",
+          "BCN01-2019-900005"
+        ],
+        "interpretation": "extract windows for the two tables were not taken atomically"
+      }
+    },
+    {
+      "control": "REC-C03",
+      "level": "field",
+      "severity": "major",
+      "summary": "2 legacy assay code(s) have no target vocabulary equivalent, affecting 1677 results",
+      "detail": {
+        "codes": {
+          "LOC900": {
+            "rows": 1196,
+            "legacy_name": "Hb pre-donation"
+          },
+          "LOC901": {
+            "rows": 481,
+            "legacy_name": "HTLV I/II legacy"
+          }
+        },
+        "interpretation": "reported mapping gap requiring disposition by the laboratory subject matter expert; rows are loaded with the legacy code retained, not dropped"
+      }
+    }
+  ]
+}
