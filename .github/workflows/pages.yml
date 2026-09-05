@@ -1,0 +1,49 @@
+name: Deploy page
+
+# Publishes web/ to GitHub Pages. The validation documents live in docs/, which
+# is deliberately NOT the Pages source: docs/ holds the specifications, and
+# serving it would expose YAML as a website rather than the page people are
+# meant to read.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify no credentials in published directory
+        run: |
+          if grep -rIEn '(AKIA|ASIA)[A-Z0-9]{16}|aws_secret_access_key|CLOUDFLARE_API_TOKEN=.' web/; then
+            echo "::error::Credential pattern found in web/ - refusing to publish"
+            exit 1
+          fi
+          echo "web/ is clean"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

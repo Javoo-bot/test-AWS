@@ -6,9 +6,9 @@
 
 Documents that a regulator would accept, over code that actually runs.
 
-### → [signal-to-cutoff.huertos-madrid.workers.dev](https://signal-to-cutoff.huertos-madrid.workers.dev)
+### → [javoo-bot.github.io/test-AWS](https://javoo-bot.github.io/test-AWS/)
 
-<sub>The pack, read in two minutes</sub>
+<sub>The pack, read in two minutes · [mirror](https://signal-to-cutoff.huertos-madrid.workers.dev)</sub>
 
 </div>
 
